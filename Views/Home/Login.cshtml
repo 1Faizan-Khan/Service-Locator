@@ -1,0 +1,19 @@
+@model ServiceLocator.Models.Login
+<h1 class="page-title">@ViewData["userType"] Login</h1>
+<h2 class="page-title">@ViewData["Error"]</h2>
+<form asp-action="Login" method="post">
+<input type="hidden" name="userType" value="@ViewData["UserType"]" />
+
+<div class="container" style= "height: 300px; border: black 2px;">
+    <div class="row">
+        <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Email">Email:</label>
+        <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Email" required/>
+    </div>
+    <div class="row">
+        <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Password">Password:</label>
+        <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Password" required/>
+    </div>
+    <button type="submit">Submit</button>
+    <a asp-action="index" class="btn btn-primary">Homepage</a>
+</div>
+</form> 

@@ -1,0 +1,41 @@
+@model ServiceLocator.Models.Customersignup
+<h1  class="page-title">Customer Signup</h1>
+
+<form asp-action="Customer" method="post">
+    <div class="container" style= "height: 300px; border: black 2px;">
+
+        <h2 style="margin-top: 30px; margin-bottom: 30px;">@ViewData["Error"]</h2>
+        
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Name">Name:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Name"required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Email">Email:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Email"required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Password">Password:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Password"required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Zipcode">Zipcode:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Zipcode"required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Description">Description:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Description"required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Whatservice">What service do you require?:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Whatservice" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Radius">Within What radius do you want the search?:</label>
+            <input class= " col-4" style="margin-bottom: 30px;" asp-for ="Radius" required/>
+        </div>
+        <button type="submit">Submit</button>
+        <a asp-action="index" class="btn btn-primary">Homepage</a>
+    </div>
+</form>
+<div class="image"><img src="~/images/customers.png" alt="Logo" class="logo" /></div>

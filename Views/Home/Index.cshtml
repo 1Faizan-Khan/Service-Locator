@@ -1,0 +1,26 @@
+﻿<div class="container text-center">
+    <h1><img src="~/images/SL.png" alt="Logo" class="logo" /></h1>
+</div>
+
+<div class="container main-container">
+    <div style="color: white;" class="row justify-content-center">
+        Find Or Provide Services Near You
+    </div>
+    <div class="row justify-content-center gap-4">
+        <a asp-action="Customer" class="button col-md-5 col-sm-6">
+            Signup as Customer
+        </a>
+        <a asp-action="Provider"class="button col-md-5 col-sm-6">
+            Signup as Provider
+        </a>
+    </div>
+
+    <div class="row justify-content-center gap-4" style="margin-top: 50px;">
+        <a asp-action="Login"  asp-route-userType="Customer" class="button col-md-4 col-sm-6 login-button">
+            Login As Customer
+        </a>
+        <a asp-action="Login"  asp-route-userType="Provider" class="button col-md-4 col-sm-6 login-button">
+            Login As Provider
+        </a>
+    </div>
+</div>

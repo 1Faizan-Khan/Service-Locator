@@ -1,0 +1,50 @@
+@model ServiceLocator.Models.Providersignup
+<h1 class="page-title" style="margin-bottom:50px;"> Provider Signup</h1>
+
+<form asp-action="Provider" method="post">
+    <div class="container" style= "height: 300px; border: black 2px;">
+
+        <h2 style="margin-top: 30px; margin-bottom: 30px;">@ViewData["Error"]</h2>
+
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Name">Name:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Name" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="professionName">Profession Name:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="professionName" required/>
+        </div>
+        //start 
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="City">City:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="City" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="State">State:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="State" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Wage">Wage:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Wage" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Email">Email:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Email" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Password">Password:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Password" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Zipcode">Zipcode:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Zipcode" required/>
+        </div>
+        <div class="row">
+            <label class= "labels col-2" style="margin-bottom: 30px;" asp-for="Description">Description:</label>
+            <input class= "col-4" style="margin-bottom: 30px;" asp-for ="Description" required/>
+        </div>
+        <button type="submit">Submit</button>
+        <a asp-action="index" class="btn btn-primary">Homepage</a>
+    </div>
+</form>
+<div class="image"><img src="~/images/workers.png" alt="Logo" class="logo" /></div>
