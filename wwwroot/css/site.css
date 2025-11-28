@@ -97,7 +97,7 @@ body.homepage-background {
 }
 
 
-body.homepage-backgrounds {
+body.homepage-background {
     background-color: black;
 }
 
@@ -120,13 +120,11 @@ body.homepage-backgrounds {
 }
 
 .output-item {
-    color: white;
-    font-size: 25px;
-    height: 200px;
-    width: 100%;
-    border: 1px solid #ccc; /* optional border */
-    padding: 10px;    /* optional padding */
-    cursor:pointer;
+    border: 2px solid white;    /* white outline */
+    padding: 10px;              /* spacing inside the card */
+    margin-bottom: 10px;        /* spacing between stacked cards */
+    border-radius: 5px;         /* optional: rounded corners */
+    background-color: rgba(0,0,0,0.5); /* optional: dark semi-transparent background */
 }
 
 .horizontal-line {
@@ -142,6 +140,9 @@ body.homepage-backgrounds {
   left: 35%;
   top: 20%;
   position:fixed;
+  color: white;
+  overflow-y: auto;
+  border-radius: 5px;
 }
 
 /* Medium screens (laptops, tablets) */
@@ -156,4 +157,24 @@ body.homepage-backgrounds {
 
 .white{
   color: white;
+}
+
+.describe-card {
+    border: 2px solid white;    /* white outline */
+    padding: 10px;              /* spacing inside the card */
+    margin-bottom: 10px;        /* spacing between stacked cards */
+    border-radius: 5px;         /* optional: rounded corners */
+    background-color: rgba(0,0,0,0.5); /* optional: dark semi-transparent background */
+    width: 100%;
+    height: 100%;
+}
+
+.providersdescribe-container{
+  border: 2px solid #ccc; /* optional border */
+  height: 75vh;
+  left: 35%;
+  position:fixed;
+  color: white;
+  overflow-y: auto;
+  border-radius: 5px;
 }

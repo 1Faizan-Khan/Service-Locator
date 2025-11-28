@@ -18,7 +18,6 @@
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/scopedcss/bundle/ServiceLocator.styles.css
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/scopedcss/projectbundle/ServiceLocator.bundle.scp.css
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/hv7z0ramyr-61n19gt1b8.gz
-/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/i6akk3zi81-xtxxf3hu2r.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/0ilwkeoqtt-bqjiyaj88i.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/ckjpdw0ek6-c2jlpeoesf.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/x7jtjq2cfe-erw9l3u2r3.gz
@@ -254,4 +253,6 @@
 /Users/faizankhan/ServiceLocator/bin/Debug/net9.0/runtimes/win-arm64/native/e_sqlite3.dll
 /Users/faizankhan/ServiceLocator/bin/Debug/net9.0/runtimes/win-x64/native/e_sqlite3.dll
 /Users/faizankhan/ServiceLocator/bin/Debug/net9.0/runtimes/win-x86/native/e_sqlite3.dll
-/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/nunc68oe3g-fwubi8pmf6.gz
+/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/ServiceLocator.sourcelink.json
+/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/i6akk3zi81-k7r6br08tu.gz
+/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/nunc68oe3g-mp476oqtt2.gz

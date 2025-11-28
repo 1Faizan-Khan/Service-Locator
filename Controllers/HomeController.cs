@@ -55,10 +55,12 @@ namespace ServiceLocator.Controllers
                     {
                         Providers = results
                     };
+                    ViewData["BodyClass"] = "homepage-background";
                     return View("Customerpage", realresult);
                 }
             }
             ViewData["cantfind"] = "Can't find any user that provides that service";
+            ViewData["BodyClass"] = "homepage-background";
             return View("Customerpage", new CustomerPageViewModel { Providers = new List<Providersignup>() });
         }
 
@@ -80,12 +82,14 @@ namespace ServiceLocator.Controllers
                 ViewData["service"] = model.Customer.Whatservice;
                 ViewData["zip"] = model.Customer.Zipcode;
                 ViewData["radius"] = model.Customer.Radius;
+                ViewData["BodyClass"] = "homepage-background";
                 return View(real);
             }
             ViewData["cantfind"] = "Can't find a provider that provides that service";
             ViewData["service"] = model.Customer.Whatservice;
             ViewData["zip"] = model.Customer.Zipcode;
             ViewData["radius"] = model.Customer.Radius;
+            ViewData["BodyClass"] = "homepage-background";
             return View(new CustomerPageViewModel { Providers = new List<Providersignup>() });
         }
 
@@ -132,11 +136,11 @@ namespace ServiceLocator.Controllers
             {
                 if (_context.Customer.Any(x => x.Email == loginModel.Email))
                 {
-                    ViewData["BodyClass"] = "homepage-backgrounds";
+                    
                     var theCustomer = _context.Customer.FirstOrDefault(c => c.Email == loginModel.Email);
 
                     var matchingProviders = _context.Provider
-                    .Where(p => p.professionName == theCustomer.Whatservice)
+                    .Where(p => p.professionName.ToLower() == theCustomer.Whatservice.ToLower())
                     .ToList();
 
                     var vm = new CustomerPageViewModel
@@ -145,6 +149,7 @@ namespace ServiceLocator.Controllers
                     };
                     ViewData["service"] = theCustomer.Whatservice;
                     ViewData["zip"] = theCustomer.Zipcode;
+                    ViewData["BodyClass"] = "homepage-background";
                     return View("Customerpage", vm);
 
 

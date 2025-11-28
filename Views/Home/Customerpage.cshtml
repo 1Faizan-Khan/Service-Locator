@@ -27,32 +27,30 @@
 
     <div class="output-container col-3" >
         @foreach (var item in Model.Providers) {
-            <div class="output-item white" data-description="@item.Description">
-                <h3 class="professionName white">@item.professionName</h3>
-                <p class="itemname white">@item.Name</p>
+            <div class="output-item white container" data-description="@item.Description" data-city="@item.City" data-state="@item.State" data-zipcode="@item.Zipcode">
+                <div class="container">
+                        <div class="row">
+                            <h3 class="itemname white">@item.Name</h3>
+                        </div>
+                        <div class = "row">
+                            <h3 class="professionName white">@item.professionName</h3>
+                        </div>
+                        <div class = "row">
+                            <p class="col-auto describe-city white">@item.City, </p>
+                            <p class="col-auto describe-state white ms-0">@item.State</p>
+                        </div>
+                        
+                    
+                </div>
+                        
             </div>
         }   
     </div>
 
     <div id="describe-container" class="describe-container col-6"></div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".output-item").forEach(function (outputItem) {
-            outputItem.addEventListener("click", function () {
-                var itemname = this.querySelector(".itemname").textContent;
-                var professionname = this.querySelector(".professionname").textContent;
-                var description = this.getAttribute("data-description");
-
-                document.getElementById("describe-container").innerHTML =
-                    "<strong>" + itemname + "</strong><br>" +
-                    professionname + "<br>" +
-                    description;
-            });
-        });
-    });
-</script>
 
 <a asp-action="index" class="btn btn-primary">Homepage</a>
 
 </div>
+<script src="~/js/site.js"></script>
