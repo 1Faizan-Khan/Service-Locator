@@ -2,14 +2,22 @@ using ServiceLocator.Services;
 using Microsoft.EntityFrameworkCore;
 using ServiceLocator.Models;
 using Microsoft.Extensions.Options;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ===============================
+// BIND TO RENDER PORT
+// ===============================
+string port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// ===============================
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<GeoServices>();
 
-//Add ef core Di
+// Add EF Core DI
 builder.Services.AddDbContext<Dbcontext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -19,7 +27,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -34,6 +41,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();
