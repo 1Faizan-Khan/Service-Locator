@@ -41,10 +41,20 @@ var app = builder.Build();
 // ===============================
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<Dbcontext>();
-    db.Database.Migrate();
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        var db = services.GetRequiredService<Dbcontext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("❌ Migration failed:");
+        Console.WriteLine(ex.Message);
+        throw;
+    }
 }
-// ===============================
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
