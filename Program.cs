@@ -1,7 +1,6 @@
 using ServiceLocator.Services;
 using Microsoft.EntityFrameworkCore;
 using ServiceLocator.Models;
-using Microsoft.Extensions.Options;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,17 +16,35 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<GeoServices>();
 
-// Add EF Core DI
+// ===============================
+// DATABASE CONFIG (LOCAL vs RENDER)
+// ===============================
 builder.Services.AddDbContext<Dbcontext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        // Local machine
+        options.UseSqlite("Data Source=serviceLocator.db");
+    }
+    else
+    {
+        // Render
+        options.UseSqlite("Data Source=/app/serviceLocator.db");
+    }
+});
+// ===============================
 
 var app = builder.Build();
 
+// ===============================
+// APPLY MIGRATIONS SAFELY
+// ===============================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Dbcontext>();
     db.Database.Migrate();
 }
+// ===============================
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -1,113 +1,103 @@
 @model ServiceLocator.Models.CustomerPageViewModel
 
-
 <div class="container-fluid" style="width: 100%;">
-<div class="row">
-<h1 style="font-weight: bold; height: 50px;" class="bord col-11">Service Locator</h1>
-<div class="phases col-1" style="height: 50px; padding: 5px;">
-<img style="margin-left: 20px;" src="~/images/notification.png" alt="Logo" class="logo" />
-</div>
-</div>
+    <div class="row">
+        <h1 style="font-weight: bold; height: 50px;" class="bord col-11">Service Locator</h1>
+        <div class="phases col-1" style="height: 50px; padding: 5px;">
+            <img style="margin-left: 20px;" src="~/images/notification.png" alt="Logo" class="logo" />
+        </div>
+    </div>
 
+    <!-- FILTERS -->
+    <div class="row" style="display: flex; gap: 1rem; margin-top: 10px;">
+        <div class="text-center phases col-1" style="font-size: 30px;">Filters:</div>
+        <div class="text-center color col-1" style="font-size: 30px;">Zip Code:</div>
+        <input class="col-2" value="@ViewData["zip"]" disabled />
+        <div class="text-center color col-1" style="font-size: 30px;">Radius:</div>
+        <input class="col-2" placeholder="N/A" disabled />
+    </div>
 
-<!-- FILTERS (same visual block as CustomerPage, no search bar) -->
-<div class="row" style="display: flex; gap: 1rem; margin-top: 10px;">
-<div class="text-center phases col-1" style="font-size: 30px;">Filters:</div>
-<div class="text-center color col-1" style="font-size: 30px;">Zip Code:</div>
-<input class="col-2" value="@ViewData["zip"]" disabled />
-<div class="text-center color col-1" style="font-size: 30px;">Radius:</div>
-<input class="col-2" placeholder="N/A" disabled />
-</div>
+    <div class="horizontal-line"></div>
 
+    <h2 style="color: white;">Customers Seeking Your Service</h2>
 
-<div class="horizontal-line"></div>
-
-
-<h2 style="color: white;">Customers Seeking Your Service</h2>
-
-
-<!-- LEFT PANEL: Customers -->
+    <!-- LEFT PANEL -->
+    <!-- LEFT PANEL -->
 <div class="output-container col-3">
-@if (Model?.Customers != null && Model.Customers.Any())
-{
-foreach (var customer in Model.Customers)
-{
-<div class="output-item white container"
-data-name="@customer.Name"
-data-email="@customer.Email"
-data-description="@customer.Description"
-data-zipcode="@customer.Zipcode"
-data-service="@customer.Whatservice">
+    @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
+    {
+        foreach (var customer in Model.CustomerList)
+        {
+            <div class="output-item white container"
+                 data-name="@customer.Name"
+                 data-email="@customer.Email"
+                 data-description="@customer.Description"
+                 data-zipcode="@customer.Zipcode"
+                 data-service="@customer.Whatservice">
 
-
-<div class="container">
-<div class="row">
-<h3 class="itemname white">@customer.Name</h3>
-</div>
-<div class="row">
-<h3 class="professionName white">@customer.Whatservice</h3>
-</div>
-<div class="row">
-<p class="col-auto describe-zipcode white">Zip: @customer.Zipcode</p>
-</div>
-</div>
-</div>
-}
-}
-else
-{
-<p class="white">No customers currently requesting your service.</p>
-}
-</div>
-
-
-<!-- RIGHT PANEL: Customer Details -->
-<div id="describe-container" class="describe-container col-6"></div>
-
-
-<a asp-action="Index" class="btn btn-primary">Homepage</a>
+                <div class="container">
+                    <div class="row">
+                        <h3 class="itemname white">@customer.Name</h3>
+                    </div>
+                    <div class="row">
+                        <h3 class="professionName white">@customer.Whatservice</h3>
+                    </div>
+                    <div class="row">
+                        <p class="col-auto describe-zipcode white">
+                            Zip: @customer.Zipcode
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="white">No customers currently requesting your service.</p>
+    }
 </div>
 
+    <!-- RIGHT PANEL -->
+    <div id="describe-container" class="describe-container col-6"></div>
+
+    <a asp-action="Index" class="btn btn-primary">Homepage</a>
+</div>
 
 @section Scripts {
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-document.querySelectorAll(".output-item").forEach(function (outputItem) {
-outputItem.addEventListener("click", function () {
-var name = this.getAttribute("data-name");
-var email = this.getAttribute("data-email");
-var description = this.getAttribute("data-description");
-var zipcode = this.getAttribute("data-zipcode");
-var service = this.getAttribute("data-service");
+    document.querySelectorAll(".output-item").forEach(function (outputItem) {
+        outputItem.addEventListener("click", function () {
+            var name = this.getAttribute("data-name");
+            var email = this.getAttribute("data-email");
+            var description = this.getAttribute("data-description");
+            var zipcode = this.getAttribute("data-zipcode");
+            var service = this.getAttribute("data-service");
 
+            var container = document.getElementById("describe-container");
+            container.innerHTML = "";
 
-var container = document.getElementById("describe-container");
-container.innerHTML = "";
+            var newCard = document.createElement("div");
+            newCard.classList.add("describe-card");
 
+            newCard.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <h3 class="describe-title">${name}</h3>
+                    </div>
+                    <div class="col-auto ms-3">
+                        <button class="btn btn-primary">Provide Service</button>
+                    </div>
+                </div>
+                <p><strong>Requested Service:</strong> ${service}</p>
+                <p><strong>Zip Code:</strong> ${zipcode}</p>
+                <p><strong>Description:</strong> ${description}</p>
+                <p><strong>Contact:</strong> ${email}</p>
+            `;
 
-var newCard = document.createElement("div");
-newCard.classList.add("describe-card");
-
-
-newCard.innerHTML = `
-<div class="row align-items-center">
-<div class="col-auto">
-<h3 class="describe-title">${name}</h3>
-</div>
-<div class="col-auto ms-3">
-<button class="btn btn-primary">Provide Service</button>
-</div>
-</div>
-<p class="describe-profession"><strong>Requested Service:</strong> ${service}</p>
-<p class="describe-zipcode"><strong>Zip Code:</strong> ${zipcode}</p>
-<p class="describe-description"><strong>Description:</strong> ${description}</p>
-<p class="describe-email"><strong>Contact:</strong> ${email}</p>
-`;
-
-
-container.appendChild(newCard);
-});
-});
+            container.appendChild(newCard);
+        });
+    });
 });
 </script>
 }
