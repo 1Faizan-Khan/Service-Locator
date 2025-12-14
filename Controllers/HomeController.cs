@@ -157,7 +157,7 @@ namespace ServiceLocator.Controllers
             }
             else if (userType == "Provider")
             {
-                ViewData["BodyClass"] = "homepage-backgrounds";
+                ViewData["BodyClass"] = "homepage-background";
                 var theProvider = _context.Provider.FirstOrDefault(c => c.Email == loginModel.Email);
 
                 if (theProvider == null)

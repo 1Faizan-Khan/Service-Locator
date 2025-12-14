@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj": {}
+    "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj": {}
   },
   "projects": {
-    "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj": {
+    "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj",
+        "projectUniqueName": "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj",
         "projectName": "ServiceLocator",
-        "projectPath": "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj",
+        "projectPath": "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj",
         "packagesPath": "/Users/faizankhan/.nuget/packages/",
-        "outputPath": "/Users/faizankhan/ServiceLocator/obj/",
+        "outputPath": "/Users/faizankhan/Documents/ServiceLocator/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/faizankhan/.nuget/NuGet/NuGet.Config"
