@@ -5051,11 +5051,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj",
+      "projectUniqueName": "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj",
       "projectName": "ServiceLocator",
-      "projectPath": "/Users/faizankhan/Documents/ServiceLocator/ServiceLocator.csproj",
+      "projectPath": "/Users/faizankhan/ServiceLocator/ServiceLocator.csproj",
       "packagesPath": "/Users/faizankhan/.nuget/packages/",
-      "outputPath": "/Users/faizankhan/Documents/ServiceLocator/obj/",
+      "outputPath": "/Users/faizankhan/ServiceLocator/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/faizankhan/.nuget/NuGet/NuGet.Config"
