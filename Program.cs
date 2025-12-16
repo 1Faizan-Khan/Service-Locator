@@ -38,11 +38,21 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("DB PATH: " + db.Database.GetDbConnection().DataSource);
 
         db.Database.Migrate();
+        // 🔍 TEMP: list tables
+        var tables = db.Database
+            .SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'")
+            .ToList();
+
+        Console.WriteLine("TABLES IN DB:");
+        foreach (var table in tables)
+        {
+            Console.WriteLine(" - " + table);
+        }
     }
     catch (Exception ex)
     {
         Console.WriteLine("Migration failed:");
-        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex);
         throw;
     }
 }
