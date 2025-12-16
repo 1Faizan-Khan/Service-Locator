@@ -10,6 +10,8 @@ namespace ServiceLocator.Models
         { }
         public DbSet<Customersignup> Customer { get; set; } = null!;
         public DbSet<Providersignup> Provider { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
+
     }
 }
 
