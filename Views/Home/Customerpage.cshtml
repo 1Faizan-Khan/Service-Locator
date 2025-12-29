@@ -1,11 +1,20 @@
 @model ServiceLocator.Models.CustomerPageViewModel
 
+
 <div class="container-fluid" style="width: 100%;">
     <div class="row">
         <h1 style="font-weight: bold; height: 50px;" class="bord col-11">Service Locator</h1>
-        <div class="phases col-1" style="height: 50px; padding: 5px;"><img style="margin-left: 20px;" src="~/images/notification.png" alt="Logo" class="logo" /></div>
+        <div class="phases col-1">
+            <div class="row align-items-center">
+                <div class="col-auto" style="padding: 5px; margin-left:20px;">
+                    <img src="~/images/notification.png" class="logo" />
+                </div>
+                <div class="col-auto">
+                    <a asp-action="Notifications" class="notification-link" style="cursor: pointer;">@ViewBag.NotificationCount</a>
+                </div>
+            </div>
+        </div>
     </div>
-
     <form asp-action="Customerpage" method="post">
         <div style="display: flex; gap: 1rem;" class="row">
             
@@ -22,12 +31,14 @@
         <input asp-for="Customer.Radius" class="col-2" name="radius" value="@ViewData["radius"]"/>
     </div>
     </form>
+
+
     <div class="horizontal-line"></div>
     <h2 style="color: white;">@ViewData["cantfind"]</h2>
 
-    <div class="output-container col-3" >
-        @foreach (var item in Model.Providers) {
-            <div class="output-item white container" data-description="@item.Description" data-city="@item.City" data-state="@item.State" data-zipcode="@item.Zipcode">
+    <div class="output-container col-3" style="margin-bottom: 20px;">
+        @foreach (var item in Model.Providers) { // output on left panel all matching providers based on the model passed in from controller
+            <div class="output-item white container" data-description="@item.Description" data-city="@item.City" data-state="@item.State" data-zipcode="@item.Zipcode" data-provider-id="@item.Id">
                 <div class="container">
                         <div class="row">
                             <h3 class="itemname white">@item.Name</h3>
@@ -50,7 +61,9 @@
     <div id="describe-container" class="describe-container col-6"></div>
 
 
-<a asp-action="index" class="btn btn-primary">Homepage</a>
+    <div class="row">
+        <a asp-action="Index" class="btn btn-primary col-1" style="margin-left: 20px;">Homepage</a>
+    </div>
 
 </div>
-<script src="~/js/site.js"></script>
+<script src="~/js/customerpage.js"></script>

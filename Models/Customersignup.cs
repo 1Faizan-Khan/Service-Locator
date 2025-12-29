@@ -17,6 +17,10 @@ public class Customersignup
     public String Zipcode { get; set; }
 
     [Required(ErrorMessage = "This field is required")]
+    [Phone(ErrorMessage = "Please enter a valid phone number")]
+    public String Phone { get; set; }
+
+    [Required(ErrorMessage = "This field is required")]
     [EmailAddress(ErrorMessage = "Please enter a valid email address")]
     public String Email { get; set; }
 

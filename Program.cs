@@ -12,6 +12,15 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<GeoServices>();
 
+// 🔹 SESSION SERVICES
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // DB config
 builder.Services.AddDbContext<Dbcontext>(options =>
 {
@@ -34,11 +43,10 @@ using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<Dbcontext>();
 
-        // 🔍 DIAGNOSTIC — DO NOT REMOVE YET
         Console.WriteLine("DB PATH: " + db.Database.GetDbConnection().DataSource);
 
         db.Database.Migrate();
-        // 🔍 TEMP: list tables
+
         var tables = db.Database
             .SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'")
             .ToList();
@@ -65,7 +73,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
+// 🔹 SESSION MIDDLEWARE (must be AFTER routing, BEFORE authorization)
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

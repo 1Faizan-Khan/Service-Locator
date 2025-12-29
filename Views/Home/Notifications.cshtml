@@ -1,0 +1,60 @@
+@model List<ServiceLocator.Models.NotificationViewModel>
+@{
+    bool viewerIsCustomer = Context.Session.GetInt32("CustomerId") != null;
+    ViewData["Title"] = "Notifications";
+}
+
+<body class="homepage-background">
+
+    <div style="background-color:#00ccd7; color:#f0f0f0; text-align:center; padding: 30px 0; font-size:40px; font-weight:600;">
+        Notifications
+    </div>
+
+    <div style="width: 800px; max-height: 70vh; margin: 50px auto; background-color:#ccc; border-radius:10px; padding:20px; overflow-y:auto;">
+        @if (!Model.Any())
+        {
+            <p style="text-align:center; color:black;">No notifications</p>
+        }
+        else
+        {
+            @foreach (var n in Model)
+            {
+                <div style="border:1px solid #aaa; padding:10px; margin-bottom:10px; background-color:#eee; border-radius:5px;">
+
+                    @if (!n.IsAccepted)
+                    {
+                        <p>
+                            @if (n.viewerIsCustomer)
+                            {
+                                <text>Provider @n.InitiatorName is offering their @n.Service services.</text>
+                            }
+                            else
+                            {
+                                <text>Customer @n.InitiatorName is requesting your @n.Service services.</text>
+                            }
+                        </p>
+
+                        <form asp-action="AcceptNotification" method="post" class="d-inline">
+                            <input type="hidden" name="notificationId" value="@n.NotificationId" />
+                            <button type="submit" class="btn btn-primary">Accept</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p style="color: green; font-weight: 600;">
+                            ✔ You can contact @n.InitiatorName at @n.Phone or @n.Email
+                        </p>
+                    }
+
+                </div>
+            }
+        }
+    </div>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center gap-2">
+            <a asp-action="Index" class="btn btn-primary col-auto">Homepage</a>
+        </div>
+    </div>
+
+</body>

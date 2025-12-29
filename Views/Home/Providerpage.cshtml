@@ -3,8 +3,15 @@
 <div class="container-fluid" style="width: 100%;">
     <div class="row">
         <h1 style="font-weight: bold; height: 50px;" class="bord col-11">Service Locator</h1>
-        <div class="phases col-1" style="height: 50px; padding: 5px;">
-            <img style="margin-left: 20px;" src="~/images/notification.png" alt="Logo" class="logo" />
+        <div class="phases col-1">
+            <div class="row align-items-center">
+                <div class="col-auto" style="padding: 5px; margin-left:20px;">
+                    <img src="~/images/notification.png" class="logo" />
+                </div>
+                <div class="col-auto">
+                    <a asp-action="Notifications" class="notification-link" style="cursor: pointer;">@ViewBag.NotificationCount</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -22,18 +29,19 @@
     <h2 style="color: white;">Customers Seeking Your Service</h2>
 
     <!-- LEFT PANEL -->
-    <!-- LEFT PANEL -->
 <div class="output-container col-3">
     @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
     {
         foreach (var customer in Model.CustomerList)
         {
+            
             <div class="output-item white container"
                  data-name="@customer.Name"
                  data-email="@customer.Email"
                  data-description="@customer.Description"
                  data-zipcode="@customer.Zipcode"
-                 data-service="@customer.Whatservice">
+                 data-service="@customer.Whatservice"
+                 data-customer-id="@customer.Id">
 
                 <div class="container">
                     <div class="row">
@@ -63,41 +71,5 @@
     <a asp-action="Index" class="btn btn-primary">Homepage</a>
 </div>
 
-@section Scripts {
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".output-item").forEach(function (outputItem) {
-        outputItem.addEventListener("click", function () {
-            var name = this.getAttribute("data-name");
-            var email = this.getAttribute("data-email");
-            var description = this.getAttribute("data-description");
-            var zipcode = this.getAttribute("data-zipcode");
-            var service = this.getAttribute("data-service");
+<script src="~/js/providerpage.js"></script>
 
-            var container = document.getElementById("describe-container");
-            container.innerHTML = "";
-
-            var newCard = document.createElement("div");
-            newCard.classList.add("describe-card");
-
-            newCard.innerHTML = `
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <h3 class="describe-title">${name}</h3>
-                    </div>
-                    <div class="col-auto ms-3">
-                        <button class="btn btn-primary">Provide Service</button>
-                    </div>
-                </div>
-                <p><strong>Requested Service:</strong> ${service}</p>
-                <p><strong>Zip Code:</strong> ${zipcode}</p>
-                <p><strong>Description:</strong> ${description}</p>
-                <p><strong>Contact:</strong> ${email}</p>
-            `;
-
-            container.appendChild(newCard);
-        });
-    });
-});
-</script>
-}

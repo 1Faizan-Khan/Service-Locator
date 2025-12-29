@@ -7,6 +7,7 @@
             var city = this.getAttribute("data-city");
             var state = this.getAttribute("data-state");
             var zipcode = this.getAttribute("data-zipcode");
+            var providerId = this.getAttribute("data-provider-id"); // NEW LINE
 
             var container = document.getElementById("describe-container");
 
@@ -23,7 +24,7 @@
                         <h3 class="describe-title">${itemname}</h3>
                     </div>
                     <div class="col-auto ms-3">
-                        <button class="btn btn-primary request-btn">Request</button>
+                        <button class="btn btn-primary request-btn" data-provider-id="${providerId}">Request</button>
                     </div>
                 </div>
                 <p class="describe-profession">${professionname}</p>
@@ -37,3 +38,30 @@
         });
     });
 });
+
+document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("request-btn")) {
+        const providerId = e.target.dataset.providerId;
+
+        fetch("/Home/RequestService", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `providerId=${providerId}`
+        })
+        .then(response => {
+            if (response.ok) {
+                // Optional: give visual feedback
+                alert("Service requested!");
+            } else {
+                alert("You alraeady requested this service.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Request failed.");
+        });
+    }
+});
+

@@ -33,8 +33,12 @@
       "PackagePath": "staticwebassets/images/workers.png"
     },
     {
-      "Id": "/Users/faizankhan/ServiceLocator/wwwroot/js/site.js",
-      "PackagePath": "staticwebassets/js/site.js"
+      "Id": "/Users/faizankhan/ServiceLocator/wwwroot/js/customerpage.js",
+      "PackagePath": "staticwebassets/js/customerpage.js"
+    },
+    {
+      "Id": "/Users/faizankhan/ServiceLocator/wwwroot/js/providerpage.js",
+      "PackagePath": "staticwebassets/js/providerpage.js"
     },
     {
       "Id": "/Users/faizankhan/ServiceLocator/wwwroot/lib/bootstrap/LICENSE",
