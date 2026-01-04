@@ -13,6 +13,12 @@ public class Customersignup
     [RegularExpression("^[a-zA-Z ]*$", ErrorMessage = "Invalid input: Only letters and spaces are allowed")]
     public String Name { get; set; }
 
+    [Required(ErrorMessage = "City is required")]
+    public string City { get; set; }
+
+    [Required(ErrorMessage = "State is required")]
+    public string State { get; set; }
+
     [Required(ErrorMessage = "This field is required")]
     public String Zipcode { get; set; }
 

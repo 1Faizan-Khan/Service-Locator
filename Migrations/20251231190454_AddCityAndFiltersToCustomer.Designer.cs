@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceLocator.Models;
 
@@ -10,9 +11,11 @@ using ServiceLocator.Models;
 namespace ServiceLocator.Migrations
 {
     [DbContext(typeof(Dbcontext))]
-    partial class DbcontextModelSnapshot : ModelSnapshot
+    [Migration("20251231190454_AddCityAndFiltersToCustomer")]
+    partial class AddCityAndFiltersToCustomer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -49,10 +52,6 @@ namespace ServiceLocator.Migrations
 
                     b.Property<int>("Radius")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Whatservice")
                         .IsRequired()
@@ -130,9 +129,6 @@ namespace ServiceLocator.Migrations
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Radius")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("State")
                         .IsRequired()

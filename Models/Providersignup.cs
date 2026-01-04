@@ -17,8 +17,12 @@ public class Providersignup
     [Required(ErrorMessage = "This field is required")]
     public String City { get; set; }
 
+    [Required(ErrorMessage = "State is required")]
+    public string State { get; set; }
+
     [Required(ErrorMessage = "This field is required")]
-    public String State { get; set; }
+    [Range(1, 100, ErrorMessage = "Radius must be between 1 and 100")]
+    public int Radius { get; set; }
 
     [Required(ErrorMessage = "This field is required")]
     [RegularExpression("^[0-9]+$", ErrorMessage = "Invalid input: Only numbers are allowed")]

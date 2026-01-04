@@ -16,13 +16,34 @@
     </div>
 
     <!-- FILTERS -->
-    <div class="row" style="display: flex; gap: 1rem; margin-top: 10px;">
-        <div class="text-center phases col-1" style="font-size: 30px;">Filters:</div>
-        <div class="text-center color col-1" style="font-size: 30px;">Zip Code:</div>
-        <input class="col-2" value="@ViewData["zip"]" disabled />
-        <div class="text-center color col-1" style="font-size: 30px;">Radius:</div>
-        <input class="col-2" placeholder="N/A" disabled />
-    </div>
+    <form asp-action="ProviderSearch" method="post">
+
+        <div class="row" style="display:flex; gap:1rem;">
+            <label class="phases text-center col-1" style="font-size:30px;">Service:</label>
+            <input class="col-10"
+                name="service"
+                value="@ViewData["service"]"
+                placeholder="e.g. plumber" />
+        </div>
+
+        <div class="row" style="display:flex; gap:1rem; margin-top:10px;">
+            <div class="phases col-1 text-center" style="font-size:30px;">Filters:</div>
+
+            <label class="col-1">City:</label>
+            <input class="col-2" name="city" value="@ViewData["city"]" placeholder="City" />
+
+            <label class="col-1">Zip:</label>
+            <input class="col-2" name="zip" value="@ViewData["zip"]" placeholder="Zip" />
+
+            <label class="col-1">Radius:</label>
+            <input class="col-2" name="radius" value="@ViewData["radius"]" placeholder="Radius (miles)" />
+        </div>
+
+        <div class="row mt-3">
+            <button type="submit" class="btn btn-primary col-2">Search</button>
+        </div>
+
+    </form>
 
     <div class="horizontal-line"></div>
 

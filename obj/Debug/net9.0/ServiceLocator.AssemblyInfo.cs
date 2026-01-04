@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ServiceLocator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+99d894b4f0df2d24203e81f9f4ace8d9facc61ef")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+43521c9a8c5d0daaa455efcbc01691d739c5fd3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("ServiceLocator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ServiceLocator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

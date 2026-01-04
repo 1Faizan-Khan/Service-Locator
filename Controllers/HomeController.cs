@@ -46,10 +46,13 @@ namespace ServiceLocator.Controllers
                 _context.Customer.Add(model);
                 _context.SaveChanges();
 
-                if (_context.Provider.Any(x => x.professionName == model.Whatservice))
+                HttpContext.Session.SetInt32("CustomerId", model.Id);
+                HttpContext.Session.Remove("ProviderId");
+
+                if (_context.Provider.Any(x => x.professionName.ToLower().Trim() == model.Whatservice.ToLower().Trim()))
                 {
                     var results = _context.Provider
-                        .Where(x => x.professionName == model.Whatservice)
+                        .Where(x => x.professionName.ToLower().Trim() == model.Whatservice.ToLower().Trim())
                         .ToList();
 
                     var realresult = new CustomerPageViewModel
@@ -58,46 +61,113 @@ namespace ServiceLocator.Controllers
                     };
 
                     ViewData["BodyClass"] = "homepage-background";
+                    ViewBag.NotificationCount = GetUnreadNotificationCount();
                     return View("Customerpage", realresult);
                 }
             }
 
             ViewData["cantfind"] = "Can't find any user that provides that service";
             ViewData["BodyClass"] = "homepage-background";
+            ViewBag.NotificationCount = GetUnreadNotificationCount();
             return View("Customerpage", new CustomerPageViewModel { Providers = new List<Providersignup>() });
         }
 
         [HttpPost]
-        public IActionResult Customerpage(CustomerPageViewModel model)
+        public IActionResult CustomerPage(CustomerPageViewModel model)
         {
-            bool serviceExists = _context.Provider
-                .Any(p => p.professionName.Contains(model.Customer.Whatservice));
+            // STEP 1: start with all providers
+            var query = _context.Provider.AsQueryable();
 
-            if (serviceExists)
+            // STEP 2: service filter (search bar)
+            if (!string.IsNullOrWhiteSpace(model.Service))
             {
-                var results = _context.Provider
-                    .Where(p => p.professionName.Contains(model.Customer.Whatservice))
-                    .ToList();
-
-                var real = new CustomerPageViewModel
-                {
-                    Providers = results
-                };
-
-                ViewData["service"] = model.Customer.Whatservice;
-                ViewData["zip"] = model.Customer.Zipcode;
-                ViewData["radius"] = model.Customer.Radius;
-                ViewData["BodyClass"] = "homepage-background";
-                return View(real);
+                string service = model.Service.ToLower().Trim();
+                query = query.Where(p => p.professionName.ToLower().Contains(service));
             }
 
-            ViewData["cantfind"] = "Can't find a provider that provides that service";
-            ViewData["service"] = model.Customer.Whatservice;
-            ViewData["zip"] = model.Customer.Zipcode;
-            ViewData["radius"] = model.Customer.Radius;
-            ViewData["BodyClass"] = "homepage-background";
-            return View(new CustomerPageViewModel { Providers = new List<Providersignup>() });
+            // STEP 3: radius logic (LEVEL 1)
+            if (model.Radius <= 5)
+            {
+                if (!string.IsNullOrWhiteSpace(model.Customer.Zipcode))
+                {
+                    query = query.Where(p => p.Zipcode == model.Customer.Zipcode);
+                }
+            }
+            else if (model.Radius <= 15)
+            {
+                if (!string.IsNullOrWhiteSpace(model.Customer.City))
+                {
+                    string city = model.Customer.City.ToLower().Trim();
+                    query = query.Where(p => p.City.ToLower() == city);
+                }
+            }
+            else
+            {
+                // Radius > 15 → return NOTHING
+                query = query.Where(p => false);
+            }
+
+            // STEP 4: execute query
+            model.Providers = query.ToList();
+
+            // STEP 5: optional empty-result message
+            if (!model.Providers.Any())
+            {
+                ViewData["cantfind"] =
+                    "No professionals found within the selected radius.";
+            }
+
+            return View(model);
         }
+
+        [HttpPost]
+        public IActionResult ProviderPage(CustomerPageViewModel model)
+        {
+            // STEP 1: start with all customers
+            var query = _context.Customer.AsQueryable();
+
+            // STEP 2: filter by requested service
+            if (!string.IsNullOrWhiteSpace(model.Service))
+            {
+                string service = model.Service.ToLower().Trim();
+                query = query.Where(c => c.Whatservice.ToLower().Contains(service));
+            }
+
+            // STEP 3: radius logic (LEVEL 1)
+            if (model.Radius <= 5)
+            {
+                if (!string.IsNullOrWhiteSpace(model.Provider.Zipcode))
+                {
+                    query = query.Where(c => c.Zipcode == model.Provider.Zipcode);
+                }
+            }
+            else if (model.Radius <= 15)
+            {
+                if (!string.IsNullOrWhiteSpace(model.Provider.City))
+                {
+                    string city = model.Provider.City.ToLower().Trim();
+                    query = query.Where(c => c.City.ToLower() == city);
+                }
+            }
+            else
+            {
+                // Radius > 15 → return NOTHING
+                query = query.Where(c => false);
+            }
+
+            // STEP 4: execute query
+            model.CustomerList = query.ToList();
+
+            // STEP 5: optional empty-result message
+            if (!model.CustomerList.Any())
+            {
+                ViewData["cantfind"] = "No customers found within the selected radius.";
+            }
+
+            return View(model);
+        }
+
+
 
         public IActionResult Customer()
         {
@@ -124,7 +194,21 @@ namespace ServiceLocator.Controllers
             {
                 _context.Provider.Add(model);
                 _context.SaveChanges();
-                return View("Providerpage");
+                HttpContext.Session.SetInt32("ProviderId", model.Id);
+                HttpContext.Session.Remove("CustomerId");
+
+                var matchingCustomers = _context.Customer
+                .Where(c => c.Whatservice.ToLower().Trim() == model.professionName.ToLower().Trim())
+                .ToList();
+
+                var vm = new CustomerPageViewModel
+                {
+                    CustomerList = matchingCustomers
+                };
+
+                ViewData["BodyClass"] = "homepage-background";
+                ViewBag.NotificationCount = GetUnreadNotificationCount();
+                return View("Providerpage", vm);
             }
         }
 
@@ -157,6 +241,7 @@ namespace ServiceLocator.Controllers
 
                     ViewData["service"] = theCustomer.Whatservice;
                     ViewData["zip"] = theCustomer.Zipcode;
+                    HttpContext.Session.Remove("ProviderId");
                     HttpContext.Session.SetInt32("CustomerId", theCustomer.Id);
                     ViewBag.NotificationCount = GetUnreadNotificationCount();
                     return View("Customerpage", vm);
@@ -177,9 +262,12 @@ namespace ServiceLocator.Controllers
                     return View(); // back to login view with error
                 }
 
-                var matchingCustomers = _context.Customer // finds all customers that match the provider's profession
-                    .Where(c => c.Whatservice == theProvider.professionName)
-                    .ToList();
+                var matchingCustomers = _context.Customer
+                .Where(c =>
+                    c.Whatservice.ToLower().Trim() ==
+                    theProvider.professionName.ToLower().Trim()
+                )
+                .ToList();
 
                 var vm = new CustomerPageViewModel // creates viewmodel to pass to providerpage
                 {
@@ -187,6 +275,7 @@ namespace ServiceLocator.Controllers
                 };
 
                 ViewData["zip"] = theProvider.Zipcode;
+                HttpContext.Session.Remove("CustomerId");
                 HttpContext.Session.SetInt32("ProviderId", theProvider.Id);
                 ViewBag.NotificationCount = GetUnreadNotificationCount();
                 return View("Providerpage", vm);
@@ -279,82 +368,82 @@ namespace ServiceLocator.Controllers
         }
 
             public IActionResult Notifications()
-{
-    int? customerId = HttpContext.Session.GetInt32("CustomerId");
-    int? providerId = HttpContext.Session.GetInt32("ProviderId");
-
-    IQueryable<Notification> query = _context.Notifications;
-
-    if (customerId != null)
-    {
-        query = query.Where(n =>
-            n.TargetType == "Customer" &&
-            n.TargetId == customerId.Value);
-    }
-    else if (providerId != null)
-    {
-        query = query.Where(n =>
-            n.TargetType == "Provider" &&
-            n.TargetId == providerId.Value);
-    }
-    else
-    {
-        return Unauthorized();
-    }
-
-    var notifications = query
-        .OrderByDescending(n => n.CreatedAt)
-        .ToList();
-
-    // Mark all as read
-    notifications.ForEach(n => n.IsRead = true);
-    _context.SaveChanges();
-
-    bool isCustomer = customerId != null;
-
-    var model = notifications.Select(n =>
-    {
-        string contactName = "";
-        string contactPhone = "";
-        string contactEmail = "";
-
-        if (n.InitiatorType == "Customer")
-        {
-            var c = _context.Customer.FirstOrDefault(cust => cust.Id == n.InitiatorId);
-            if (c != null)
             {
-                contactName = c.Name;
-                contactPhone = c.Phone; // assuming your Customer entity has Phone
-                contactEmail = c.Email;
-            }
-        }
-        else if (n.InitiatorType == "Provider")
-        {
-            var p = _context.Provider.FirstOrDefault(prov => prov.Id == n.InitiatorId);
-            if (p != null)
-            {
-                contactName = p.Name;
-                contactPhone = p.Phone; // assuming your Provider entity has Phone
-                contactEmail = p.Email;
-            }
-        }
+                int? customerId = HttpContext.Session.GetInt32("CustomerId");
+                int? providerId = HttpContext.Session.GetInt32("ProviderId");
 
-        return new NotificationViewModel
-        {
-            NotificationId = n.Id,
-            InitiatorName = contactName,
-            Service = isCustomer
-                ? _context.Provider.FirstOrDefault(p => p.Id == n.InitiatorId)?.professionName
-                : _context.Customer.FirstOrDefault(c => c.Id == n.InitiatorId)?.Whatservice,
-            viewerIsCustomer = isCustomer,
-            IsAccepted = n.IsAccepted, // make sure you added this bool to your Notification entity
-            Phone = contactPhone,
-            Email = contactEmail
-        };
-    }).ToList();
+                IQueryable<Notification> query = _context.Notifications;
 
-    return View(model);
-}
+                if (customerId != null)
+                {
+                    query = query.Where(n =>
+                        n.TargetType == "Customer" &&
+                        n.TargetId == customerId.Value);
+                }
+                else if (providerId != null)
+                {
+                    query = query.Where(n =>
+                        n.TargetType == "Provider" &&
+                        n.TargetId == providerId.Value);
+                }
+                else
+                {
+                    return View(new List<NotificationViewModel>());
+                }
+
+                var notifications = query
+                    .OrderByDescending(n => n.CreatedAt)
+                    .ToList();
+
+                // Mark all as read
+                notifications.ForEach(n => n.IsRead = true);
+                _context.SaveChanges();
+
+                bool isCustomer = customerId != null;
+
+                var model = notifications.Select(n =>
+                {
+                    string contactName = "";
+                    string contactPhone = "";
+                    string contactEmail = "";
+
+                    if (n.InitiatorType == "Customer")
+                    {
+                        var c = _context.Customer.FirstOrDefault(cust => cust.Id == n.InitiatorId);
+                        if (c != null)
+                        {
+                            contactName = c.Name;
+                            contactPhone = c.Phone; // assuming your Customer entity has Phone
+                            contactEmail = c.Email;
+                        }
+                    }
+                    else if (n.InitiatorType == "Provider")
+                    {
+                        var p = _context.Provider.FirstOrDefault(prov => prov.Id == n.InitiatorId);
+                        if (p != null)
+                        {
+                            contactName = p.Name;
+                            contactPhone = p.Phone; // assuming your Provider entity has Phone
+                            contactEmail = p.Email;
+                        }
+                    }
+
+                    return new NotificationViewModel
+                    {
+                        NotificationId = n.Id,
+                        InitiatorName = contactName,
+                        Service = isCustomer
+                            ? _context.Provider.FirstOrDefault(p => p.Id == n.InitiatorId)?.professionName
+                            : _context.Customer.FirstOrDefault(c => c.Id == n.InitiatorId)?.Whatservice,
+                        viewerIsCustomer = isCustomer,
+                        IsAccepted = n.IsAccepted, // make sure you added this bool to your Notification entity
+                        Phone = contactPhone,
+                        Email = contactEmail
+                    };
+                }).ToList();
+
+                return View(model);
+            }
 
 
 
@@ -383,19 +472,21 @@ namespace ServiceLocator.Controllers
         }
 
         [HttpPost]
-        public IActionResult AcceptNotification(int id)
+        public IActionResult AcceptNotification(int notificationId)
         {
-            var notification = _context.Notifications.FirstOrDefault(n => n.Id == id);
-            if (notification == null) return NotFound();
+            var notification = _context.Notifications
+                .FirstOrDefault(n => n.Id == notificationId);
+
+            if (notification == null)
+                return NotFound();
 
             notification.IsAccepted = true;
 
-            // Create a new notification for the initiator
             _context.Notifications.Add(new Notification
             {
-                InitiatorType = notification.TargetType,   // the current user who accepted
+                InitiatorType = notification.TargetType,
                 InitiatorId = notification.TargetId,
-                TargetType = notification.InitiatorType,  // the original initiator
+                TargetType = notification.InitiatorType,
                 TargetId = notification.InitiatorId,
                 IsRead = false,
                 CreatedAt = DateTime.Now
@@ -403,8 +494,93 @@ namespace ServiceLocator.Controllers
 
             _context.SaveChanges();
 
-            return Ok();
+            // ✅ DO NOT return a View here
+            return RedirectToAction("Notifications");
         }
+
+        [HttpPost]
+        public IActionResult CustomerSearch(
+            string service,
+            string city,
+            string zip,
+            int? radius)
+        {
+            var query = _context.Provider.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(service))
+                query = query.Where(p => p.professionName.ToLower().Contains(service.ToLower()));
+
+            if (!string.IsNullOrWhiteSpace(city))
+                query = query.Where(p => p.City.ToLower() == city.ToLower());
+
+            if (!string.IsNullOrWhiteSpace(zip))
+                query = query.Where(p => p.Zipcode == zip);
+
+            var providers = query.ToList();
+
+            if (!providers.Any())
+            {
+                ViewData["cantfind"] = "Can't find any providers";
+            }
+
+            var vm = new CustomerPageViewModel
+            {
+                Providers = providers
+            };
+
+            ViewData["service"] = service;
+            ViewData["city"] = city;
+            ViewData["zip"] = zip;
+            ViewData["radius"] = radius;
+
+            ViewData["BodyClass"] = "homepage-background";
+            return View("Customerpage", vm);
+        }
+
+        [HttpPost]
+        public IActionResult ProviderSearch(
+            string service,
+            string city,
+            string zip,
+            int? radius)
+        {
+            var query = _context.Customer.AsQueryable();
+
+            // STEP 1: service filter
+            if (!string.IsNullOrWhiteSpace(service))
+                query = query.Where(c => c.Whatservice.ToLower().Contains(service.ToLower()));
+
+            // STEP 2: city filter
+            if (!string.IsNullOrWhiteSpace(city))
+                query = query.Where(c => c.City.ToLower() == city.ToLower());
+
+            // STEP 3: zipcode filter
+            if (!string.IsNullOrWhiteSpace(zip))
+                query = query.Where(c => c.Zipcode == zip);
+
+            var customers = query.ToList();
+
+            if (!customers.Any())
+            {
+                ViewData["cantfind"] = "Can't find any customers";
+            }
+
+            var vm = new CustomerPageViewModel
+            {
+                CustomerList = customers
+            };
+
+            ViewData["service"] = service;
+            ViewData["city"] = city;
+            ViewData["zip"] = zip;
+            ViewData["radius"] = radius;
+
+            ViewData["BodyClass"] = "homepage-background";
+            return View("Providerpage", vm);
+        }
+
+
+
 
 
 

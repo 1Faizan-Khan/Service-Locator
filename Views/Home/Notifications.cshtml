@@ -24,7 +24,7 @@
                     @if (!n.IsAccepted)
                     {
                         <p>
-                            @if (n.viewerIsCustomer)
+                            @if (viewerIsCustomer)
                             {
                                 <text>Provider @n.InitiatorName is offering their @n.Service services.</text>
                             }
