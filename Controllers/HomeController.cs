@@ -37,12 +37,17 @@ namespace ServiceLocator.Controllers
             {
                 ViewData["Error"] = "Email is already in the system";
                 ViewData["BodyClass"] = "homepage-background";
-                return View("Customer");
+                return View(model);
             }
             else
             {
                 ViewData["service"] = model.Whatservice;
                 ViewData["zip"] = model.Zipcode;
+                ViewData["radius"] = model.Radius;
+                ViewData["city"] = model.City;
+                ViewData["state"] = model.State;
+
+
                 _context.Customer.Add(model);
                 _context.SaveChanges();
 
@@ -65,106 +70,16 @@ namespace ServiceLocator.Controllers
                     return View("Customerpage", realresult);
                 }
             }
+            ViewData["service"] = model.Whatservice;
+            ViewData["zip"] = model.Zipcode;
+            ViewData["radius"] = model.Radius;
+            ViewData["city"] = model.City;
+            ViewData["state"] = model.State;
 
             ViewData["cantfind"] = "Can't find any user that provides that service";
             ViewData["BodyClass"] = "homepage-background";
             ViewBag.NotificationCount = GetUnreadNotificationCount();
             return View("Customerpage", new CustomerPageViewModel { Providers = new List<Providersignup>() });
-        }
-
-        [HttpPost]
-        public IActionResult CustomerPage(CustomerPageViewModel model)
-        {
-            // STEP 1: start with all providers
-            var query = _context.Provider.AsQueryable();
-
-            // STEP 2: service filter (search bar)
-            if (!string.IsNullOrWhiteSpace(model.Service))
-            {
-                string service = model.Service.ToLower().Trim();
-                query = query.Where(p => p.professionName.ToLower().Contains(service));
-            }
-
-            // STEP 3: radius logic (LEVEL 1)
-            if (model.Radius <= 5)
-            {
-                if (!string.IsNullOrWhiteSpace(model.Customer.Zipcode))
-                {
-                    query = query.Where(p => p.Zipcode == model.Customer.Zipcode);
-                }
-            }
-            else if (model.Radius <= 15)
-            {
-                if (!string.IsNullOrWhiteSpace(model.Customer.City))
-                {
-                    string city = model.Customer.City.ToLower().Trim();
-                    query = query.Where(p => p.City.ToLower() == city);
-                }
-            }
-            else
-            {
-                // Radius > 15 → return NOTHING
-                query = query.Where(p => false);
-            }
-
-            // STEP 4: execute query
-            model.Providers = query.ToList();
-
-            // STEP 5: optional empty-result message
-            if (!model.Providers.Any())
-            {
-                ViewData["cantfind"] =
-                    "No professionals found within the selected radius.";
-            }
-
-            return View(model);
-        }
-
-        [HttpPost]
-        public IActionResult ProviderPage(CustomerPageViewModel model)
-        {
-            // STEP 1: start with all customers
-            var query = _context.Customer.AsQueryable();
-
-            // STEP 2: filter by requested service
-            if (!string.IsNullOrWhiteSpace(model.Service))
-            {
-                string service = model.Service.ToLower().Trim();
-                query = query.Where(c => c.Whatservice.ToLower().Contains(service));
-            }
-
-            // STEP 3: radius logic (LEVEL 1)
-            if (model.Radius <= 5)
-            {
-                if (!string.IsNullOrWhiteSpace(model.Provider.Zipcode))
-                {
-                    query = query.Where(c => c.Zipcode == model.Provider.Zipcode);
-                }
-            }
-            else if (model.Radius <= 15)
-            {
-                if (!string.IsNullOrWhiteSpace(model.Provider.City))
-                {
-                    string city = model.Provider.City.ToLower().Trim();
-                    query = query.Where(c => c.City.ToLower() == city);
-                }
-            }
-            else
-            {
-                // Radius > 15 → return NOTHING
-                query = query.Where(c => false);
-            }
-
-            // STEP 4: execute query
-            model.CustomerList = query.ToList();
-
-            // STEP 5: optional empty-result message
-            if (!model.CustomerList.Any())
-            {
-                ViewData["cantfind"] = "No customers found within the selected radius.";
-            }
-
-            return View(model);
         }
 
 
@@ -194,6 +109,7 @@ namespace ServiceLocator.Controllers
             {
                 _context.Provider.Add(model);
                 _context.SaveChanges();
+
                 HttpContext.Session.SetInt32("ProviderId", model.Id);
                 HttpContext.Session.Remove("CustomerId");
 
@@ -205,6 +121,11 @@ namespace ServiceLocator.Controllers
                 {
                     CustomerList = matchingCustomers
                 };
+                ViewData["service"] = model.professionName;
+                ViewData["zip"] = model.Zipcode;
+                ViewData["radius"] = model.Radius;
+                ViewData["city"] = model.City;
+                ViewData["state"] = model.State;
 
                 ViewData["BodyClass"] = "homepage-background";
                 ViewBag.NotificationCount = GetUnreadNotificationCount();
@@ -228,7 +149,16 @@ namespace ServiceLocator.Controllers
                 if (_context.Customer.Any(x => x.Email == loginModel.Email)) // checks to see if customer's email is in the system
                 {
                     var theCustomer = _context.Customer // thecustomer equals the row where the email matches the email logged in with
-                        .FirstOrDefault(c => c.Email == loginModel.Email);
+                        .FirstOrDefault(c => c.Email == loginModel.Email
+                                        && c.Password == loginModel.Password);
+
+                    if (theCustomer == null)
+                    {
+                        ViewData["UserType"] = userType;
+                        ViewData["Error"] = "Invalid email or password";
+                        ViewData["BodyClass"] = "homepage-background";
+                        return View();
+                    }
 
                     var matchingProviders = _context.Provider // finds all providers that match the customer's requested service
                         .Where(p => p.professionName.ToLower() == theCustomer.Whatservice.ToLower())
@@ -241,6 +171,8 @@ namespace ServiceLocator.Controllers
 
                     ViewData["service"] = theCustomer.Whatservice;
                     ViewData["zip"] = theCustomer.Zipcode;
+                    ViewData["city"] = theCustomer.City;
+                    ViewData["State"] = theCustomer.State;
                     HttpContext.Session.Remove("ProviderId");
                     HttpContext.Session.SetInt32("CustomerId", theCustomer.Id);
                     ViewBag.NotificationCount = GetUnreadNotificationCount();
@@ -252,12 +184,13 @@ namespace ServiceLocator.Controllers
                 ViewData["BodyClass"] = "homepage-background";
 
                 var theProvider = _context.Provider // row where provider matches the email logged in with
-                    .FirstOrDefault(c => c.Email == loginModel.Email);
+                    .FirstOrDefault(c => c.Email == loginModel.Email
+                                    && c.Password == loginModel.Password);
 
                 if (theProvider == null)
                 {
-                    ViewData["user"] = userType;
-                    ViewData["Error"] = "Email is not in the system";
+                    ViewData["UserType"] = userType;
+                    ViewData["Error"] = "Invalid Email or Password";
                     ViewData["BodyClass"] = "homepage-background";
                     return View(); // back to login view with error
                 }
@@ -502,19 +435,35 @@ namespace ServiceLocator.Controllers
         public IActionResult CustomerSearch(
             string service,
             string city,
+            string state,
             string zip,
             int? radius)
         {
             var query = _context.Provider.AsQueryable();
 
+            // STEP 1: filter by service if specified
             if (!string.IsNullOrWhiteSpace(service))
                 query = query.Where(p => p.professionName.ToLower().Contains(service.ToLower()));
 
-            if (!string.IsNullOrWhiteSpace(city))
-                query = query.Where(p => p.City.ToLower() == city.ToLower());
+            // STEP 2: radius filtering only if radius AND at least one location is specified
+            if (radius.HasValue)
+            {
+                int r = radius.Value;
 
-            if (!string.IsNullOrWhiteSpace(zip))
-                query = query.Where(p => p.Zipcode == zip);
+                if (!string.IsNullOrWhiteSpace(zip) && r <= 5)
+                {
+                    query = query.Where(p => p.Zipcode == zip);
+                }
+                else if (!string.IsNullOrWhiteSpace(city) && r <= 15)
+                {
+                    query = query.Where(p => p.City.ToLower() == city.ToLower());
+                }
+                else if (!string.IsNullOrWhiteSpace(state) && r <= 25)
+                {
+                    query = query.Where(p => p.State.ToLower() == state.ToLower());
+                }
+                // If radius is set but no location info is given, ignore radius
+            }
 
             var providers = query.ToList();
 
@@ -528,8 +477,11 @@ namespace ServiceLocator.Controllers
                 Providers = providers
             };
 
+            ViewBag.NotificationCount = GetUnreadNotificationCount();
+
             ViewData["service"] = service;
             ViewData["city"] = city;
+            ViewData["state"] = state;
             ViewData["zip"] = zip;
             ViewData["radius"] = radius;
 
@@ -537,26 +489,42 @@ namespace ServiceLocator.Controllers
             return View("Customerpage", vm);
         }
 
+
+
+
         [HttpPost]
         public IActionResult ProviderSearch(
             string service,
             string city,
+            string state,
             string zip,
             int? radius)
         {
             var query = _context.Customer.AsQueryable();
 
-            // STEP 1: service filter
+            // STEP 1: filter by service if specified
             if (!string.IsNullOrWhiteSpace(service))
                 query = query.Where(c => c.Whatservice.ToLower().Contains(service.ToLower()));
 
-            // STEP 2: city filter
-            if (!string.IsNullOrWhiteSpace(city))
-                query = query.Where(c => c.City.ToLower() == city.ToLower());
+            // STEP 2: radius filtering only if radius AND at least one location is specified
+            if (radius.HasValue)
+            {
+                int r = radius.Value;
 
-            // STEP 3: zipcode filter
-            if (!string.IsNullOrWhiteSpace(zip))
-                query = query.Where(c => c.Zipcode == zip);
+                if (!string.IsNullOrWhiteSpace(zip) && r <= 5)
+                {
+                    query = query.Where(c => c.Zipcode == zip);
+                }
+                else if (!string.IsNullOrWhiteSpace(city) && r <= 15)
+                {
+                    query = query.Where(c => c.City.ToLower() == city.ToLower());
+                }
+                else if (!string.IsNullOrWhiteSpace(state) && r <= 25)
+                {
+                    query = query.Where(c => c.State.ToLower() == state.ToLower());
+                }
+                // If radius is set but no location info is given, ignore radius
+            }
 
             var customers = query.ToList();
 
@@ -570,39 +538,16 @@ namespace ServiceLocator.Controllers
                 CustomerList = customers
             };
 
+            ViewBag.NotificationCount = GetUnreadNotificationCount();
+
             ViewData["service"] = service;
             ViewData["city"] = city;
+            ViewData["state"] = state;
             ViewData["zip"] = zip;
             ViewData["radius"] = radius;
 
             ViewData["BodyClass"] = "homepage-background";
             return View("Providerpage", vm);
-        }
-
-
-
-
-
-
-
-        // New test action
-        public async Task<IActionResult> Location(string zip)
-        {
-            if (string.IsNullOrWhiteSpace(zip))
-                return BadRequest("ZIP code is required.");
-
-            var location = await _geoService.GetCoordinatesAsync(zip);
-
-            if (location == null)
-                return NotFound("Could not retrieve location.");
-
-            return Ok(location); // You can also return a View if you prefer
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

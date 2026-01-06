@@ -30,13 +30,16 @@
             <div class="phases col-1 text-center" style="font-size:30px;">Filters:</div>
 
             <label class="col-1">City:</label>
-            <input class="col-2" name="city" value="@ViewData["city"]" placeholder="City" />
+            <input class="col-1" name="city" value="@ViewData["city"]" placeholder="City" />
+
+            <label class="col-1">State:</label>
+            <input class="col-1" name="state" value="@ViewData["state"]" placeholder="State" />
 
             <label class="col-1">Zip:</label>
-            <input class="col-2" name="zip" value="@ViewData["zip"]" placeholder="Zip" />
+            <input class="col-1" name="zip" value="@ViewData["zip"]" placeholder="Zip" />
 
             <label class="col-1">Radius:</label>
-            <input class="col-2" name="radius" value="@ViewData["radius"]" placeholder="Radius (miles)" />
+            <input class="col-1" name="radius" value="@ViewData["radius"]" placeholder="Radius (miles)" />
         </div>
 
         <div class="row mt-3">
@@ -50,44 +53,52 @@
     <h2 style="color: white;">Customers Seeking Your Service</h2>
 
     <!-- LEFT PANEL -->
-<div class="output-container col-3">
-    @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
-    {
-        foreach (var customer in Model.CustomerList)
+<div class="row">
+    <div class="output-container col-3">
+        @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
         {
-            
-            <div class="output-item white container"
-                 data-name="@customer.Name"
-                 data-email="@customer.Email"
-                 data-description="@customer.Description"
-                 data-zipcode="@customer.Zipcode"
-                 data-service="@customer.Whatservice"
-                 data-customer-id="@customer.Id">
+            foreach (var customer in Model.CustomerList)
+            {
+                
+                <div class="output-item white container"
+                    data-name="@customer.Name"
+                    data-city="@customer.City" 
+                    data-state="@customer.State"
+                    data-email="@customer.Email"
+                    data-description="@customer.Description"
+                    data-zipcode="@customer.Zipcode"
+                    data-service="@customer.Whatservice"
+                    data-customer-id="@customer.Id">
 
-                <div class="container">
-                    <div class="row">
-                        <h3 class="itemname white">@customer.Name</h3>
-                    </div>
-                    <div class="row">
-                        <h3 class="professionName white">@customer.Whatservice</h3>
-                    </div>
-                    <div class="row">
-                        <p class="col-auto describe-zipcode white">
-                            Zip: @customer.Zipcode
-                        </p>
+                    <div class="container">
+                        <div class="row">
+                            <h3 class="itemname white">@customer.Name</h3>
+                        </div>
+                        <div class="row">
+                            <h3 class="professionName white">@customer.Whatservice</h3>
+                        </div>
+                        <div class="row">
+                            <p class="col-auto describe-zipcode white">
+                                Zip: @customer.Zipcode
+                            </p>
+                        </div>
+                        <div class = "row">
+                                <p class="col-auto describe-city white">@customer.City, </p>
+                                <p class="col-auto describe-state white ms-0">@customer.State</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         }
-    }
-    else
-    {
-        <p class="white">No customers currently requesting your service.</p>
-    }
+        else
+        {
+            <p class="white">No customers currently requesting your service.</p>
+        }
 </div>
 
     <!-- RIGHT PANEL -->
     <div id="describe-container" class="describe-container col-6"></div>
+</div>
 
     <a asp-action="Index" class="btn btn-primary">Homepage</a>
 </div>

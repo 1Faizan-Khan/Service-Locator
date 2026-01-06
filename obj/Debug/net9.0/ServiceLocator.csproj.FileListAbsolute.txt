@@ -177,10 +177,8 @@
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/scopedcss/Views/Shared/_Layout.cshtml.rz.scp.css
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/scopedcss/bundle/ServiceLocator.styles.css
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/scopedcss/projectbundle/ServiceLocator.bundle.scp.css
-/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/nunc68oe3g-5ms6p0hyy5.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/hv7z0ramyr-61n19gt1b8.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/7by9yxhuac-i5bf9qtzli.gz
-/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/4rl9vfdx2p-7x2z6zq1hi.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/0ilwkeoqtt-bqjiyaj88i.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/ckjpdw0ek6-c2jlpeoesf.gz
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/x7jtjq2cfe-erw9l3u2r3.gz
@@ -257,3 +255,5 @@
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/ServiceLocator.pdb
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/ServiceLocator.genruntimeconfig.cache
 /Users/faizankhan/ServiceLocator/obj/Debug/net9.0/ref/ServiceLocator.dll
+/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/4rl9vfdx2p-5512kfoixc.gz
+/Users/faizankhan/ServiceLocator/obj/Debug/net9.0/compressed/nunc68oe3g-i268gx5kid.gz

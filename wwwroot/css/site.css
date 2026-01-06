@@ -134,16 +134,17 @@ body.homepage-background {
   background-color: white;
 }
 
-.describe-container{
-  border: 2px solid #ccc; /* optional border */
+.describe-container {
+  border: 2px solid #ccc;
   height: 75vh;
-  left: 35%;
-  top: 20%;
-  position:fixed;
+  position: sticky;
+  top: 1rem;
   color: white;
   overflow-y: auto;
   border-radius: 5px;
 }
+
+
 
 /* Medium screens (laptops, tablets) */
 @media (max-width: 1700px) {
