@@ -207,7 +207,10 @@ namespace ServiceLocator.Controllers
                     CustomerList = matchingCustomers // <- fixed reference
                 };
 
+                ViewData["service"] = theProvider.professionName;
                 ViewData["zip"] = theProvider.Zipcode;
+                ViewData["city"] = theProvider.City;
+                ViewData["State"] = theProvider.State;
                 HttpContext.Session.Remove("CustomerId");
                 HttpContext.Session.SetInt32("ProviderId", theProvider.Id);
                 ViewBag.NotificationCount = GetUnreadNotificationCount();

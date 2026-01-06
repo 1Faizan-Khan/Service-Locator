@@ -29,16 +29,16 @@
         <div class="row" style="display:flex; gap:1rem; margin-top:10px;">
             <div class="phases col-1 text-center" style="font-size:30px;">Filters:</div>
 
-            <label class="col-1">City:</label>
+            <label class="col-1" style="color: white;">City:</label>
             <input class="col-1" name="city" value="@ViewData["city"]" placeholder="City" />
 
-            <label class="col-1">State:</label>
+            <label class="col-1" style="color: white;">State:</label>
             <input class="col-1" name="state" value="@ViewData["state"]" placeholder="State" />
 
-            <label class="col-1">Zip:</label>
+            <label class="col-1" style="color: white;">Zip:</label>
             <input class="col-1" name="zip" value="@ViewData["zip"]" placeholder="Zip" />
 
-            <label class="col-1">Radius:</label>
+            <label class="col-1" style="color: white;">Radius:</label>
             <input class="col-1" name="radius" value="@ViewData["radius"]" placeholder="Radius (miles)" />
         </div>
 
@@ -68,7 +68,7 @@
                     data-description="@customer.Description"
                     data-zipcode="@customer.Zipcode"
                     data-service="@customer.Whatservice"
-                    data-customer-id="@customer.Id">
+                    data-customer-id="@customer.Id" style="width:100%">
 
                     <div class="container">
                         <div class="row">

@@ -36,7 +36,7 @@ builder.Services.AddDbContext<Dbcontext>(options =>
 
 var app = builder.Build();
 
-// Force migrations + DIAGNOSTIC LOG
+// 🔹 MIGRATIONS + SEED DATA
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -46,6 +46,61 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("DB PATH: " + db.Database.GetDbConnection().DataSource);
 
         db.Database.Migrate();
+
+        // ============================
+        // 🔹 SEED DEMO DATA (SAFE)
+        // ============================
+
+        if (!db.Provider.Any())
+        {
+            db.Provider.AddRange(
+                new Providersignup
+                {
+                    Name = "Mike the Plumber",
+                    Email = "plumber@test.com",
+                    Password = "test123",
+                    professionName = "Plumber",
+                    City = "Chicago",
+                    State = "IL",
+                    Zipcode = "60616",
+                    Description = "Licensed plumber with 10+ years experience"
+                },
+                new Providersignup
+                {
+                    Name = "Bug Busters",
+                    Email = "exterminator@test.com",
+                    Password = "test123",
+                    professionName = "Exterminator",
+                    City = "Chicago",
+                    State = "IL",
+                    Zipcode = "60610",
+                    Description = "Residential and commercial pest control"
+                }
+            );
+        }
+
+        if (!db.Customer.Any())
+        {
+            db.Customer.Add(
+                new Customersignup
+                {
+                    Name = "Jane Doe",
+                    Email = "customer@test.com",
+                    Password = "test123",
+                    Whatservice = "Plumber",
+                    City = "Chicago",
+                    State = "IL",
+                    Zipcode = "60616",
+                    Description = "Kitchen sink leaking badly"
+                }
+            );
+        }
+
+        db.SaveChanges();
+
+        // ============================
+        // 🔹 DIAGNOSTIC LOG
+        // ============================
 
         var tables = db.Database
             .SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'")
@@ -59,7 +114,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Migration failed:");
+        Console.WriteLine("Migration or seeding failed:");
         Console.WriteLine(ex);
         throw;
     }
@@ -76,7 +131,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 🔹 SESSION MIDDLEWARE (must be AFTER routing, BEFORE authorization)
+// 🔹 SESSION MIDDLEWARE
 app.UseSession();
 
 app.UseAuthorization();
