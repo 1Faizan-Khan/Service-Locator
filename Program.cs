@@ -59,22 +59,28 @@ using (var scope = app.Services.CreateScope())
                     Name = "Mike the Plumber",
                     Email = "plumber@test.com",
                     Password = "test123",
+                    Phone = "773123321",
                     professionName = "Plumber",
                     City = "Chicago",
                     State = "IL",
                     Zipcode = "60616",
-                    Description = "Licensed plumber with 10+ years experience"
+                    Description = "Licensed plumber with 10+ years experience",
+                    Wage = "20",
+                    Radius = 10
                 },
                 new Providersignup
                 {
                     Name = "Bug Busters",
                     Email = "exterminator@test.com",
                     Password = "test123",
+                    Phone = "882345768",
                     professionName = "Exterminator",
                     City = "Chicago",
                     State = "IL",
                     Zipcode = "60610",
-                    Description = "Residential and commercial pest control"
+                    Description = "Residential and commercial pest control",
+                    Wage = "20",
+                    Radius = 10
                 }
             );
         }
@@ -87,11 +93,13 @@ using (var scope = app.Services.CreateScope())
                     Name = "Jane Doe",
                     Email = "customer@test.com",
                     Password = "test123",
+                    Phone = "989332456",
                     Whatservice = "Plumber",
                     City = "Chicago",
                     State = "IL",
                     Zipcode = "60616",
-                    Description = "Kitchen sink leaking badly"
+                    Description = "Kitchen sink leaking badly",
+                    Radius = 10
                 }
             );
         }
