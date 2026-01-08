@@ -188,3 +188,7 @@ body.homepage-background {
 .notification-link:hover {
     color: white; /* keep it white on hover */
 }
+
+.describe-card {
+    width: 100%;
+}

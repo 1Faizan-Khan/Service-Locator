@@ -20,10 +20,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             newCard.innerHTML = `
                 <div class="row align-items-center">
-                    <div class="col-auto">
+                    <div class="col">
                         <h3 class="describe-title">${name}</h3>
                     </div>
-                    <div class="col-auto ms-3">
+                    <div class="col-auto">
                         <button class="btn btn-primary service-btn" data-customer-id="${customerid}">Provide Service</button>
                     </div>
                 </div>

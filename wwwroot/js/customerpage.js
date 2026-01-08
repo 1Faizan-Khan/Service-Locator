@@ -20,10 +20,10 @@
 
             newCard.innerHTML = `
                 <div class="row align-items-center">
-                    <div class="col-auto">
+                    <div class="col">
                         <h3 class="describe-title">${itemname}</h3>
                     </div>
-                    <div class="col-auto ms-3">
+                    <div class="col-auto">
                         <button class="btn btn-primary request-btn" data-provider-id="${providerId}">Request</button>
                     </div>
                 </div>

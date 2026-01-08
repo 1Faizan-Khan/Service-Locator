@@ -54,7 +54,7 @@
 
     <!-- LEFT PANEL -->
 <div class="row">
-    <div class="output-container col-3">
+    <div class="output-container col-3 p-0">
         @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
         {
             foreach (var customer in Model.CustomerList)
@@ -97,7 +97,7 @@
 </div>
 
     <!-- RIGHT PANEL -->
-    <div id="describe-container" class="describe-container col-6"></div>
+    <div id="describe-container" class="describe-container col-6 p-0"></div>
 </div>
 
     <a asp-action="Index" class="btn btn-primary">Homepage</a>
