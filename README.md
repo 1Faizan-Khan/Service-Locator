@@ -1,0 +1,1 @@
+Service Locator is a website that allows you to find services near you, this website uses C#, HTML, CSS, Javascript and the ASP.NET Core framework in order to facilitate seamless searching, grouping, and coordination between customers and providers
