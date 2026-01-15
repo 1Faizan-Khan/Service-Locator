@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceLocator.Models;
 
@@ -10,49 +11,14 @@ using ServiceLocator.Models;
 namespace ServiceLocator.Migrations
 {
     [DbContext(typeof(Dbcontext))]
-    partial class DbcontextModelSnapshot : ModelSnapshot
+    [Migration("20260111003421_AddMessaging")]
+    partial class AddMessaging
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
-
-            modelBuilder.Entity("Message", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ConversationId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("RecipientId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RecipientType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("SenderId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("SenderType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId");
-
-                    b.ToTable("Messages");
-                });
 
             modelBuilder.Entity("ServiceLocator.Models.Conversation", b =>
                 {
@@ -126,6 +92,36 @@ namespace ServiceLocator.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customer");
+                });
+
+            modelBuilder.Entity("ServiceLocator.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("ServiceLocator.Models.Notification", b =>
@@ -216,13 +212,6 @@ namespace ServiceLocator.Migrations
                     b.ToTable("Provider");
                 });
 
-            modelBuilder.Entity("Message", b =>
-                {
-                    b.HasOne("ServiceLocator.Models.Conversation", null)
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId");
-                });
-
             modelBuilder.Entity("ServiceLocator.Models.Conversation", b =>
                 {
                     b.HasOne("ServiceLocator.Models.Customersignup", "Customer")
@@ -240,6 +229,17 @@ namespace ServiceLocator.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Provider");
+                });
+
+            modelBuilder.Entity("ServiceLocator.Models.Message", b =>
+                {
+                    b.HasOne("ServiceLocator.Models.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
                 });
 
             modelBuilder.Entity("ServiceLocator.Models.Conversation", b =>

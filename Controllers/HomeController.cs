@@ -225,43 +225,58 @@ namespace ServiceLocator.Controllers
 
         //Request Service action
         [HttpPost]
-        public IActionResult RequestService([FromForm] int providerId)
+        public IActionResult RequestService(int providerId)
         {
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             if (customerId == null)
                 return Unauthorized();
 
-            Console.WriteLine("==== REQUEST SERVICE DEBUG ====");
-            Console.WriteLine($"CustomerId: {customerId}, ProviderId: {providerId}");
-            Console.WriteLine("===============================");
-
-            // ✅ Check for duplicate request
-            var alreadyExists = _context.Notifications.Any(n =>
+            // ✅ STRICT duplicate check
+            bool alreadyRequested = _context.Notifications.Any(n =>
                 n.InitiatorType == "Customer" &&
                 n.InitiatorId == customerId.Value &&
                 n.TargetType == "Provider" &&
-                n.TargetId == providerId
+                n.TargetId == providerId &&
+                n.IsAccepted == false
             );
 
-            if (alreadyExists)
+            if (alreadyRequested)
+                return BadRequest("You already requested this service.");
+
+            // ✅ Ensure conversation exists
+            var convoExists = _context.Conversations.Any(c =>
+                c.CustomerId == customerId.Value &&
+                c.ProviderId == providerId
+            );
+
+            if (!convoExists)
             {
-                return BadRequest("You already requested this provider.");
+                _context.Conversations.Add(new Conversation
+                {
+                    CustomerId = customerId.Value,
+                    ProviderId = providerId
+                });
             }
 
-            var notification = new Notification
+            // ✅ Create the notification CORRECTLY
+            _context.Notifications.Add(new Notification
             {
                 InitiatorType = "Customer",
                 InitiatorId = customerId.Value,
                 TargetType = "Provider",
                 TargetId = providerId,
-                IsRead = false
-            };
+                IsRead = false,
+                IsAccepted = false,
+                CreatedAt = DateTime.UtcNow
+            });
 
-            _context.Notifications.Add(notification);
             _context.SaveChanges();
 
             return Ok();
         }
+
+
+
 
 
         [HttpPost]
@@ -345,41 +360,91 @@ namespace ServiceLocator.Controllers
 
                     if (n.InitiatorType == "Customer")
                     {
-                        var c = _context.Customer.FirstOrDefault(cust => cust.Id == n.InitiatorId);
+                        var c = _context.Customer.FirstOrDefault(x => x.Id == n.InitiatorId);
                         if (c != null)
                         {
                             contactName = c.Name;
-                            contactPhone = c.Phone; // assuming your Customer entity has Phone
+                            contactPhone = c.Phone;
                             contactEmail = c.Email;
                         }
                     }
-                    else if (n.InitiatorType == "Provider")
+                    else
                     {
-                        var p = _context.Provider.FirstOrDefault(prov => prov.Id == n.InitiatorId);
+                        var p = _context.Provider.FirstOrDefault(x => x.Id == n.InitiatorId);
                         if (p != null)
                         {
                             contactName = p.Name;
-                            contactPhone = p.Phone; // assuming your Provider entity has Phone
+                            contactPhone = p.Phone;
                             contactEmail = p.Email;
+                        }
+                    }
+
+                    // 🔹 FETCH MESSAGES ONLY IF ACCEPTED
+                    var messages = new List<MessageViewModel>();
+
+                    if (n.IsAccepted)
+                    {
+                        if (isCustomer)
+                        {
+                            messages = _context.Messages
+                                .Where(m =>
+                                    (m.SenderType == "Customer" && m.SenderId == customerId.Value &&
+                                    m.RecipientType == "Provider" && m.RecipientId == n.InitiatorId)
+                                || (m.SenderType == "Provider" && m.SenderId == n.InitiatorId &&
+                                    m.RecipientType == "Customer" && m.RecipientId == customerId.Value)
+                                )
+                                .OrderBy(m => m.CreatedAt)
+                                .Select(m => new MessageViewModel
+                                {
+                                    SenderName = m.SenderType == "Customer"
+                                        ? _context.Customer.First(x => x.Id == m.SenderId).Name
+                                        : _context.Provider.First(x => x.Id == m.SenderId).Name,
+                                    Text = m.Text,
+                                    CreatedAt = m.CreatedAt
+                                })
+                                .ToList();
+                        }
+                        else
+                        {
+                            messages = _context.Messages
+                                .Where(m =>
+                                    (m.SenderType == "Provider" && m.SenderId == providerId.Value &&
+                                    m.RecipientType == "Customer" && m.RecipientId == n.InitiatorId)
+                                || (m.SenderType == "Customer" && m.SenderId == n.InitiatorId &&
+                                    m.RecipientType == "Provider" && m.RecipientId == providerId.Value)
+                                )
+                                .OrderBy(m => m.CreatedAt)
+                                .Select(m => new MessageViewModel
+                                {
+                                    SenderName = m.SenderType == "Customer"
+                                        ? _context.Customer.First(x => x.Id == m.SenderId).Name
+                                        : _context.Provider.First(x => x.Id == m.SenderId).Name,
+                                    Text = m.Text,
+                                    CreatedAt = m.CreatedAt
+                                })
+                                .ToList();
                         }
                     }
 
                     return new NotificationViewModel
                     {
                         NotificationId = n.Id,
+                        InitiatorId = n.InitiatorId,
                         InitiatorName = contactName,
                         Service = isCustomer
                             ? _context.Provider.FirstOrDefault(p => p.Id == n.InitiatorId)?.professionName
                             : _context.Customer.FirstOrDefault(c => c.Id == n.InitiatorId)?.Whatservice,
                         viewerIsCustomer = isCustomer,
-                        IsAccepted = n.IsAccepted, // make sure you added this bool to your Notification entity
+                        IsAccepted = n.IsAccepted,
                         Phone = contactPhone,
-                        Email = contactEmail
+                        Email = contactEmail,
+                        Messages = messages
                     };
                 }).ToList();
 
                 return View(model);
             }
+
 
 
 
@@ -552,5 +617,59 @@ namespace ServiceLocator.Controllers
             ViewData["BodyClass"] = "homepage-background";
             return View("Providerpage", vm);
         }
+
+        [HttpPost]
+        public IActionResult SendMessage(int recipientId, string recipientType, string messageText)
+        {
+            int? customerId = HttpContext.Session.GetInt32("CustomerId");
+            int? providerId = HttpContext.Session.GetInt32("ProviderId");
+
+            if ((customerId == null && providerId == null) || string.IsNullOrWhiteSpace(messageText))
+            {
+                return BadRequest("Invalid message or user not logged in.");
+            }
+
+            // Determine sender
+            string senderType;
+            int senderId;
+
+            if (customerId != null)
+            {
+                senderType = "Customer";
+                senderId = customerId.Value;
+            }
+            else
+            {
+                senderType = "Provider";
+                senderId = providerId.Value;
+            }
+
+            // Create message
+            var msg = new Message
+            {
+                SenderId = senderId,
+                SenderType = senderType,
+                RecipientId = recipientId,
+                RecipientType = recipientType,
+                Text = messageText,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Messages.Add(msg);
+
+            /*
+            * IMPORTANT:
+            * Do NOT create a service notification here.
+            * Service notifications are ONLY for requests & acceptance.
+            * Messaging after acceptance should never re-create them.
+            */
+
+            _context.SaveChanges();
+
+            return Ok(new { success = true });
+        }
+
+
+
     }
 }

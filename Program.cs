@@ -51,7 +51,9 @@ using (var scope = app.Services.CreateScope())
         // 🔹 SEED DEMO DATA (SAFE)
         // ============================
 
-        if (!db.Provider.Any())
+        if (!db.Provider.Any(p =>
+    p.Email == "plumber@test.com" ||
+    p.Email == "exterminator@test.com"))
         {
             db.Provider.AddRange(
                 new Providersignup
@@ -85,7 +87,8 @@ using (var scope = app.Services.CreateScope())
             );
         }
 
-        if (!db.Customer.Any())
+        if (!db.Customer.Any(c =>
+    c.Email == "customer@test.com"))
         {
             db.Customer.Add(
                 new Customersignup

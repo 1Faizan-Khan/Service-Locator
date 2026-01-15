@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceLocator.Models;
 
@@ -10,9 +11,11 @@ using ServiceLocator.Models;
 namespace ServiceLocator.Migrations
 {
     [DbContext(typeof(Dbcontext))]
-    partial class DbcontextModelSnapshot : ModelSnapshot
+    [Migration("20260111231906_AddMessagingFix")]
+    partial class AddMessagingFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -149,6 +152,9 @@ namespace ServiceLocator.Migrations
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("MessageText")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("TargetId")
                         .HasColumnType("INTEGER");

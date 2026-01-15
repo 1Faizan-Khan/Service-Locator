@@ -21,6 +21,7 @@
             {
                 <div style="border:1px solid #aaa; padding:10px; margin-bottom:10px; background-color:#eee; border-radius:5px;">
 
+                    @* SERVICE OFFER — ONLY BEFORE ACCEPTANCE *@
                     @if (!n.IsAccepted)
                     {
                         <p>
@@ -41,11 +42,30 @@
                     }
                     else
                     {
+                        @* ACCEPTED → CONVERSATION MODE *@
                         <p style="color: green; font-weight: 600;">
                             ✔ You can contact @n.InitiatorName at @n.Phone or @n.Email
                         </p>
-                    }
 
+                        <!-- MESSAGING FORM -->
+                        <form class="message-form"
+                              data-recipient-id="@n.InitiatorId"
+                              data-recipient-type="@((viewerIsCustomer) ? "Provider" : "Customer")">
+                            <textarea class="form-control mb-2" placeholder="Type your message..." rows="2"></textarea>
+                            <button type="submit" class="btn btn-success btn-sm">Send</button>
+                            <span class="text-success ms-2 message-status" style="display:none;">✔ Message sent</span>
+                        </form>
+
+                        <!-- DISPLAY MESSAGES -->
+                        <div class="messages-list mt-2">
+                            @foreach (var msg in n.Messages ?? new List<ServiceLocator.Models.MessageViewModel>())
+                            {
+                                <div style="border-top:1px dashed #aaa; padding:3px;">
+                                    <strong>@msg.SenderName:</strong> @msg.Text
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             }
         }
@@ -56,5 +76,34 @@
             <a asp-action="Index" class="btn btn-primary col-auto">Homepage</a>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll(".message-form").forEach(form => {
+            form.addEventListener("submit", function(e){
+                e.preventDefault();
+                const textarea = this.querySelector("textarea");
+                const message = textarea.value.trim();
+                if(!message) return;
+
+                const recipientId = this.dataset.recipientId;
+                const recipientType = this.dataset.recipientType;
+                const status = this.querySelector(".message-status");
+
+                fetch("/Home/SendMessage", {
+                    method: "POST",
+                    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+                    body: `recipientId=${recipientId}&recipientType=${recipientType}&messageText=${encodeURIComponent(message)}`
+                })
+                .then(res => {
+                    if(res.ok){
+                        status.style.display = "inline";
+                        textarea.value = "";
+                    } else {
+                        alert("Message failed");
+                    }
+                })
+            });
+        });
+    </script>
 
 </body>

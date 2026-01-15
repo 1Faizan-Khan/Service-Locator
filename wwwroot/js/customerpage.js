@@ -55,7 +55,7 @@ document.addEventListener("click", function (e) {
                 // Optional: give visual feedback
                 alert("Service requested!");
             } else {
-                alert("You alraeady requested this service.");
+                alert("You already requested this service.");
             }
         })
         .catch(err => {
