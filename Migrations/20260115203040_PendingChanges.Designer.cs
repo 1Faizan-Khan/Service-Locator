@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiceLocator.Models;
 
@@ -10,9 +11,11 @@ using ServiceLocator.Models;
 namespace ServiceLocator.Migrations
 {
     [DbContext(typeof(Dbcontext))]
-    partial class DbcontextModelSnapshot : ModelSnapshot
+    [Migration("20260115203040_PendingChanges")]
+    partial class PendingChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -140,10 +143,6 @@ namespace ServiceLocator.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DemoSessionId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("InitiatorId")
                         .HasColumnType("INTEGER");
 
@@ -152,9 +151,6 @@ namespace ServiceLocator.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsAccepted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDemo")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsRead")

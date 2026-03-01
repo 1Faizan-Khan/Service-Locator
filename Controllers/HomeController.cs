@@ -39,61 +39,90 @@ namespace ServiceLocator.Controllers
                 ViewData["BodyClass"] = "homepage-background";
                 return View(model);
             }
-            else
-            {
-                ViewData["service"] = model.Whatservice;
-                ViewData["zip"] = model.Zipcode;
-                ViewData["radius"] = model.Radius;
-                ViewData["city"] = model.City;
-                ViewData["state"] = model.State;
+
+            // Save customer
+            _context.Customer.Add(model);
+            _context.SaveChanges();
+
+            // Session
+            HttpContext.Session.SetInt32("CustomerId", model.Id);
+            HttpContext.Session.Remove("ProviderId");
 
 
-                _context.Customer.Add(model);
-                _context.SaveChanges();
-
-                HttpContext.Session.SetInt32("CustomerId", model.Id);
-                HttpContext.Session.Remove("ProviderId");
-
-                if (_context.Provider.Any(x => x.professionName.ToLower().Trim() == model.Whatservice.ToLower().Trim()))
-                {
-                    var results = _context.Provider
-                        .Where(x => x.professionName.ToLower().Trim() == model.Whatservice.ToLower().Trim())
-                        .ToList();
-
-                    var realresult = new CustomerPageViewModel
-                    {
-                        Providers = results
-                    };
-
-                    ViewData["BodyClass"] = "homepage-background";
-                    ViewBag.NotificationCount = GetUnreadNotificationCount();
-                    return View("Customerpage", realresult);
-                }
-            }
+            // ViewData
             ViewData["service"] = model.Whatservice;
             ViewData["zip"] = model.Zipcode;
             ViewData["radius"] = model.Radius;
             ViewData["city"] = model.City;
             ViewData["state"] = model.State;
-
-            ViewData["cantfind"] = "Can't find any user that provides that service";
             ViewData["BodyClass"] = "homepage-background";
             ViewBag.NotificationCount = GetUnreadNotificationCount();
-            return View("Customerpage", new CustomerPageViewModel { Providers = new List<Providersignup>() });
+
+            var providers = _context.Provider
+                .Where(x => x.professionName.ToLower().Trim() == model.Whatservice.ToLower().Trim())
+                .ToList();
+
+            if (!providers.Any())
+            {
+                ViewData["cantfind"] = "Can't find any user that provides that service";
+            }
+
+            return View("Customerpage", new CustomerPageViewModel
+            {
+                Providers = providers
+            });
         }
 
 
 
+
+
+       [HttpGet]
         public IActionResult Customer()
         {
             ViewData["BodyClass"] = "homepage-background";
-            return View();
+
+            bool startTour = TempData["StartTour"] as bool? ?? false;
+
+            if (startTour)
+            {
+                var vm = new CustomerPageViewModel
+                {
+                    Providers = _context.Provider
+                        .Where(p => p.professionName == "Plumber")
+                        .ToList()
+                };
+
+                ViewData["StartTour"] = true;
+                return View("Customerpage", vm);
+            }
+
+            return View("Customer");
         }
 
-        public IActionResult Provider()
+
+
+
+
+        [HttpGet]
+        public IActionResult Provider(string search)
         {
             ViewData["BodyClass"] = "homepage-background";
-            return View();
+
+            if (!string.IsNullOrEmpty(search) && search.ToLower() == "true")
+            {
+                var vm = new CustomerPageViewModel
+                {
+                    CustomerList = _context.Customer
+                        .Where(c => c.Whatservice == "Plumber")
+                        .ToList()
+                };
+
+                ViewData["StartTour"] = true;
+                return View("Providerpage", vm);
+            }
+
+            return View("Provider");
         }
 
         [HttpPost]
@@ -114,24 +143,38 @@ namespace ServiceLocator.Controllers
                 HttpContext.Session.Remove("CustomerId");
 
                 var matchingCustomers = _context.Customer
-                .Where(c => c.Whatservice.ToLower().Trim() == model.professionName.ToLower().Trim())
-                .ToList();
+                    .Where(c => c.Whatservice.ToLower().Trim() == model.professionName.ToLower().Trim())
+                    .ToList();
 
                 var vm = new CustomerPageViewModel
                 {
                     CustomerList = matchingCustomers
                 };
+
                 ViewData["service"] = model.professionName;
                 ViewData["zip"] = model.Zipcode;
                 ViewData["radius"] = model.Radius;
                 ViewData["city"] = model.City;
                 ViewData["state"] = model.State;
 
+                // 🔹 Guidance messages for provider
+                var guidanceSteps = new List<string>
+                {
+                    "Welcome to ServiceLocator! Let's walk you through how to provide services.",
+                    "You can view customers requesting your services on your homepage.",
+                    "Click on a customer to view their request details and message them.",
+                    "Once you accept a request, you can start communicating through the messaging system.",
+                    "Remember to keep your profile updated with your services and availability."
+                };
+
+                TempData["GuidanceSteps"] = System.Text.Json.JsonSerializer.Serialize(guidanceSteps);
+
                 ViewData["BodyClass"] = "homepage-background";
                 ViewBag.NotificationCount = GetUnreadNotificationCount();
                 return View("Providerpage", vm);
             }
         }
+
 
         public IActionResult Login(string userType)
         {
@@ -225,19 +268,28 @@ namespace ServiceLocator.Controllers
 
         //Request Service action
         [HttpPost]
-        public IActionResult RequestService(int providerId)
+        public IActionResult RequestService(int providerId, string tourMode)
         {
+            bool isDemo = tourMode == "true";
+
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             if (customerId == null)
                 return Unauthorized();
 
-            // ✅ STRICT duplicate check
+            // 🔹 Get demo session if it exists
+            string demoSessionId = isDemo ? GetOrCreateDemoSessionId() : null;
+
+            // ✅ STRICT duplicate check (include demo session)
             bool alreadyRequested = _context.Notifications.Any(n =>
                 n.InitiatorType == "Customer" &&
                 n.InitiatorId == customerId.Value &&
                 n.TargetType == "Provider" &&
                 n.TargetId == providerId &&
-                n.IsAccepted == false
+                n.IsAccepted == false &&
+                (
+                    !n.IsDemo ||
+                    (n.IsDemo && n.DemoSessionId == demoSessionId)
+                )
             );
 
             if (alreadyRequested)
@@ -258,7 +310,7 @@ namespace ServiceLocator.Controllers
                 });
             }
 
-            // ✅ Create the notification CORRECTLY
+            // ✅ Create the notification correctly
             _context.Notifications.Add(new Notification
             {
                 InitiatorType = "Customer",
@@ -267,13 +319,32 @@ namespace ServiceLocator.Controllers
                 TargetId = providerId,
                 IsRead = false,
                 IsAccepted = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsDemo = isDemo,
+                DemoSessionId = demoSessionId
             });
 
             _context.SaveChanges();
 
-            return Ok();
+            return Ok(new {
+                success = true,
+                message = isDemo ? "Demo request sent successfully." : "Request sent."
+            });
         }
+
+
+
+        private string GetOrCreateDemoSessionId()
+        {
+            var id = HttpContext.Session.GetString("DemoSessionId");
+            if (id == null)
+            {
+                id = Guid.NewGuid().ToString();
+                HttpContext.Session.SetString("DemoSessionId", id);
+            }
+            return id;
+        }
+
 
 
 
@@ -290,12 +361,19 @@ namespace ServiceLocator.Controllers
             Console.WriteLine($"ProviderId: {providerId}, customerId: {customerId}");
             Console.WriteLine("===============================");
 
-            // ✅ DEFINE alreadyExists HERE
+            // 🔹 Get demo session if it exists
+            string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
+
+            // 🔹 Check if notification already exists (including demo session)
             var alreadyExists = _context.Notifications.Any(n =>
                 n.InitiatorType == "Provider" &&
                 n.InitiatorId == providerId.Value &&
                 n.TargetType == "Customer" &&
-                n.TargetId == customerId
+                n.TargetId == customerId &&
+                (
+                    !n.IsDemo || 
+                    (n.IsDemo && n.DemoSessionId == demoSessionId)
+                )
             );
 
             if (alreadyExists)
@@ -309,7 +387,9 @@ namespace ServiceLocator.Controllers
                 InitiatorId = providerId.Value,
                 TargetType = "Customer",
                 TargetId = customerId,
-                IsRead = false
+                IsRead = false,
+                IsDemo = !string.IsNullOrEmpty(demoSessionId),
+                DemoSessionId = demoSessionId
             };
 
             _context.Notifications.Add(notification);
@@ -318,10 +398,14 @@ namespace ServiceLocator.Controllers
             return Ok();
         }
 
+
             public IActionResult Notifications()
             {
                 int? customerId = HttpContext.Session.GetInt32("CustomerId");
                 int? providerId = HttpContext.Session.GetInt32("ProviderId");
+
+                // 🔹 DEMO SESSION (used for filtering demo notifications)
+                string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
 
                 IQueryable<Notification> query = _context.Notifications;
 
@@ -342,11 +426,17 @@ namespace ServiceLocator.Controllers
                     return View(new List<NotificationViewModel>());
                 }
 
+                // 🔹 FILTER DEMO VS REAL NOTIFICATIONS
+                query = query.Where(n =>
+                    !n.IsDemo ||
+                    (n.IsDemo && n.DemoSessionId == demoSessionId)
+                );
+
                 var notifications = query
                     .OrderByDescending(n => n.CreatedAt)
                     .ToList();
 
-                // Mark all as read
+                // 🔹 Mark all as read
                 notifications.ForEach(n => n.IsRead = true);
                 _context.SaveChanges();
 
@@ -448,17 +538,22 @@ namespace ServiceLocator.Controllers
 
 
 
+
         public int GetUnreadNotificationCount()
         {
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             int? providerId = HttpContext.Session.GetInt32("ProviderId");
+
+            string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
 
             if (customerId != null)
             {
                 return _context.Notifications.Count(n =>
                     n.TargetType == "Customer" &&
                     n.TargetId == customerId.Value &&
-                    !n.IsRead);
+                    !n.IsRead &&
+                    (!n.IsDemo || n.DemoSessionId == demoSessionId)
+                );
             }
 
             if (providerId != null)
@@ -466,11 +561,15 @@ namespace ServiceLocator.Controllers
                 return _context.Notifications.Count(n =>
                     n.TargetType == "Provider" &&
                     n.TargetId == providerId.Value &&
-                    !n.IsRead);
+                    !n.IsRead &&
+                    (!n.IsDemo || n.DemoSessionId == demoSessionId)
+                );
             }
 
             return 0;
         }
+
+
 
         [HttpPost]
         public IActionResult AcceptNotification(int notificationId)
@@ -483,6 +582,7 @@ namespace ServiceLocator.Controllers
 
             notification.IsAccepted = true;
 
+            // 🔹 Create back-notification safely, preserving demo flags
             _context.Notifications.Add(new Notification
             {
                 InitiatorType = notification.TargetType,
@@ -490,14 +590,34 @@ namespace ServiceLocator.Controllers
                 TargetType = notification.InitiatorType,
                 TargetId = notification.InitiatorId,
                 IsRead = false,
+                IsDemo = notification.IsDemo,                     // copy demo flag
+                DemoSessionId = notification.DemoSessionId,       // copy demo session
                 CreatedAt = DateTime.Now
             });
 
             _context.SaveChanges();
 
-            // ✅ DO NOT return a View here
             return RedirectToAction("Notifications");
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CleanupDemo()
+        {
+            var demoSessionId = HttpContext.Session.GetString("DemoSessionId");
+            if (demoSessionId == null) return Ok();
+
+            var demos = _context.Notifications
+                .Where(n => n.IsDemo && n.DemoSessionId == demoSessionId);
+
+            _context.Notifications.RemoveRange(demos);
+            _context.SaveChanges();
+
+            HttpContext.Session.Remove("DemoSessionId");
+            return Ok();
+        }
+
 
         [HttpPost]
         public IActionResult CustomerSearch(
@@ -668,6 +788,14 @@ namespace ServiceLocator.Controllers
 
             return Ok(new { success = true });
         }
+
+        public IActionResult StartTour(bool tour)
+        {
+            TempData["StartTour"] = tour;
+            return RedirectToAction("Customer");
+        }
+
+
 
 
 

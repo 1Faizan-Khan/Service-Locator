@@ -74,3 +74,21 @@ document.addEventListener("click", function (e) {
 
     }
 });
+
+const guidanceJson = '@TempData["GuidanceSteps"]';
+        if (guidanceJson && guidanceJson.length > 0) {
+            const guidanceSteps = JSON.parse(guidanceJson);
+            let i = 0;
+
+            function showNextStep() {
+                if (i < guidanceSteps.length) {
+                    alert(guidanceSteps[i]);
+                    i++;
+                    showNextStep();
+                }
+            }
+
+            window.onload = function() {
+                showNextStep();
+            };
+        }

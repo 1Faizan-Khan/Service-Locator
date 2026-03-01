@@ -1,6 +1,13 @@
 @model ServiceLocator.Models.CustomerPageViewModel
 
 
+<script>
+    // Pass StartTour flag from ViewData to JS
+    window.startTour = @((ViewData["StartTour"] as bool? ?? false).ToString().ToLower());
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+
 <div class="container-fluid" style="width: 100%;">
     <div class="row">
         <h1 style="font-weight: bold; height: 50px;" class="bord col-11">Service Locator</h1>
@@ -42,7 +49,7 @@
         </div>
 
         <div class="row mt-3">
-            <button type="submit" class="btn btn-primary col-2">Search</button>
+            <button id= "searchBtn" type="submit" class="btn btn-primary col-2">Search</button>
         </div>
 
     </form>
@@ -53,9 +60,15 @@
     <h2 style="color: white;">@ViewData["cantfind"]</h2>
 
 <div class="row">
-    <div class="output-container col-3 p-0" style="margin-bottom: 20px;">
+    <div id="provider-list" class="output-container col-3 p-0" style="margin-bottom: 20px;">
         @foreach (var item in Model.Providers) { // output on left panel all matching providers based on the model passed in from controller
-            <div class="output-item white" data-description="@item.Description" data-city="@item.City" data-state="@item.State" data-zipcode="@item.Zipcode" data-provider-id="@item.Id">
+            <div class="output-item white" 
+            data-description="@item.Description" 
+            data-city="@item.City" 
+            data-state="@item.State" 
+            data-zipcode="@item.Zipcode" 
+            data-provider-id="@item.Id">
+            
                 <div>
                         <div class="row">
                             <h3 class="itemname white">@item.Name</h3>
@@ -84,4 +97,87 @@
     </div>
 
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+
+<script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
 <script src="~/js/customerpage.js"></script>
+
+@if (ViewData["StartTour"] as bool? == true)
+{
+    <script>
+        sessionStorage.setItem("tourMode", "true");
+        document.addEventListener("DOMContentLoaded", function () {
+            startGuidedTour();
+        });
+    </script>
+}
+
+
+<script>
+function startGuidedTour() {
+
+    sessionStorage.setItem("tourMode", "true");
+
+    const intro = introJs();
+
+    intro.setOptions({
+        exitOnOverlayClick: false,
+        tooltipClass: 'custom-intro-tooltip',
+        showProgress: true,
+        steps: [
+            { intro: "This guided tour shows how ServiceLocator works using demo data." },
+            { element: '#searchBtn', intro: "Use this search to find service providers." },
+            { element: '#provider-list', intro: "Matching providers appear here." },
+            { element: '#provider-list', intro: "Click on the first provider to see his details." },
+            { element: '#describe-container', intro: "The provider's details appear here." },
+            { element: '#describe-container', intro: "Send a service request to this provider using the Request button!" },
+            { 
+                intro: `Good, Mike the plumber will now receive your request. <br/>
+                        <button class="btn btn-primary" id="redirectBtn">Click me to continue</button>`
+            },
+            { intro: "This is what Mike sees." },
+            { intro: "That's it — you're ready to use ServiceLocator!" }
+        ]
+    });
+
+        intro.onexit(cleanupDemo);
+        intro.oncomplete(cleanupDemo);
+
+        function cleanupDemo() {
+            sessionStorage.removeItem("tourMode");
+
+            fetch("/Home/CleanupDemo", {
+                method: "POST",
+                headers: {
+                    "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            });
+        }
+
+
+    intro.start();
+
+
+}
+
+</script>
+
+
+<script>
+document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "redirectBtn") {
+
+        // 🔑 TELL NEXT PAGE TO START PROVIDER TOUR
+        sessionStorage.setItem("providerTour", "true");
+
+        // 🔁 REDIRECT TO PROVIDER VIEW
+        window.location.href = "/Home/Provider?search=true";
+
+    }
+});
+</script>
+
+
+
+

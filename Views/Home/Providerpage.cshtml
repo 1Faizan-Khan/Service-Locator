@@ -1,4 +1,5 @@
 @model ServiceLocator.Models.CustomerPageViewModel
+<link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
 
 <div class="container-fluid" style="width: 100%;">
     <div class="row">
@@ -54,7 +55,7 @@
 
     <!-- LEFT PANEL -->
 <div class="row">
-    <div class="output-container col-3 p-0">
+    <div id="class-container" class="output-container col-3 p-0">
         @if (Model?.CustomerList != null && Model.CustomerList.Count > 0)
         {
             foreach (var customer in Model.CustomerList)
@@ -104,4 +105,56 @@
 </div>
 
 <script src="~/js/providerpage.js"></script>
+
+<script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+
+
+<script>
+function startProviderTour() {
+    const intro = introJs();
+
+    intro.setOptions({
+        exitOnOverlayClick: false,
+        tooltipClass: 'custom-intro-tooltip',
+        showProgress: true,
+        steps: [
+            { intro: "Welcome to the Provider side of ServiceLocator." },
+
+            { 
+                element: '#class-container', 
+                intro: "This is where the provider sees incoming service requests as well as customers who are seeking this provider's service" 
+            },
+
+            { 
+                element: '#class-container', 
+                intro: "Click on the post" 
+            },
+
+            { 
+                element: '#describe-container', 
+                intro: "As you can see, the provider can provide services to customers using the provide service button" 
+            },
+
+
+            { 
+                intro: "That's it — you're now ready to use the Provider dashboard!" 
+            }
+        ]
+    });
+
+    intro.start();
+}
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (sessionStorage.getItem("providerTour") === "true") {
+        sessionStorage.removeItem("providerTour");
+        startProviderTour();
+    }
+});
+</script>
+
+
 

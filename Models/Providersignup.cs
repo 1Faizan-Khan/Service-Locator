@@ -48,6 +48,7 @@ public class Providersignup
     [Required(ErrorMessage = "This field is required")]
     public String Description { get; set; }
 
+    public bool HasSeenGuidance { get; set; } = false;
 
 
 

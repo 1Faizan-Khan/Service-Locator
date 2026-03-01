@@ -24,7 +24,7 @@
                         <h3 class="describe-title">${itemname}</h3>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-primary request-btn" data-provider-id="${providerId}">Request</button>
+                        <button id="requestBtn" class="btn btn-primary request-btn" data-provider-id="${providerId}">Request</button>
                     </div>
                 </div>
                 <p class="describe-profession">${professionname}</p>
@@ -35,28 +35,30 @@
             `;
 
             container.appendChild(newCard);
+
+
         });
     });
 });
 
 document.addEventListener("click", function (e) {
     if (e.target.classList.contains("request-btn")) {
-        const providerId = e.target.dataset.providerId;
 
+        const providerId = e.target.dataset.providerId;
+        const isTourMode = sessionStorage.getItem("tourMode") === "true";
+
+        // Send providerId and tourMode to server
         fetch("/Home/RequestService", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
-            body: `providerId=${providerId}`
+            body: `providerId=${providerId}&tourMode=${isTourMode}`
         })
-        .then(response => {
-            if (response.ok) {
-                // Optional: give visual feedback
-                alert("Service requested!");
-            } else {
-                alert("You already requested this service.");
-            }
+        .then(response => response.json()) // parse JSON from server
+        .then(data => {
+            // Show message from server
+            alert(data.message);
         })
         .catch(err => {
             console.error(err);
@@ -65,3 +67,31 @@ document.addEventListener("click", function (e) {
     }
 });
 
+
+
+// customerpage.js
+
+(function () {
+
+    // Only run if guidance steps exist (new signup only)
+    if (!window.guidanceSteps || !Array.isArray(window.guidanceSteps)) {
+        return;
+    }
+
+    // Simple sequential guidance using alerts
+    function showGuidance(steps) {
+        for (let i = 0; i < steps.length; i++) {
+            alert(steps[i]);
+        }
+    }
+
+    // Run after page fully loads
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+            showGuidance(window.guidanceSteps);
+        });
+    } else {
+        showGuidance(window.guidanceSteps);
+    }
+
+})();
