@@ -30,9 +30,6 @@ namespace ServiceLocator.Models
 
         public bool IsAccepted { get; set; } = false;
 
-        public bool IsDemo { get; set; } = false;
-
-        public string DemoSessionId { get; set; }
 
     }
 }

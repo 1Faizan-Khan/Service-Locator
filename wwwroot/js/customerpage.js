@@ -45,7 +45,6 @@ document.addEventListener("click", function (e) {
     if (e.target.classList.contains("request-btn")) {
 
         const providerId = e.target.dataset.providerId;
-        const isTourMode = sessionStorage.getItem("tourMode") === "true";
 
         // Send providerId and tourMode to server
         fetch("/Home/RequestService", {
@@ -53,7 +52,7 @@ document.addEventListener("click", function (e) {
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
-            body: `providerId=${providerId}&tourMode=${isTourMode}`
+            body: `providerId=${providerId}`
         })
         .then(response => response.json()) // parse JSON from server
         .then(data => {
@@ -69,29 +68,4 @@ document.addEventListener("click", function (e) {
 
 
 
-// customerpage.js
 
-(function () {
-
-    // Only run if guidance steps exist (new signup only)
-    if (!window.guidanceSteps || !Array.isArray(window.guidanceSteps)) {
-        return;
-    }
-
-    // Simple sequential guidance using alerts
-    function showGuidance(steps) {
-        for (let i = 0; i < steps.length; i++) {
-            alert(steps[i]);
-        }
-    }
-
-    // Run after page fully loads
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", function () {
-            showGuidance(window.guidanceSteps);
-        });
-    } else {
-        showGuidance(window.guidanceSteps);
-    }
-
-})();

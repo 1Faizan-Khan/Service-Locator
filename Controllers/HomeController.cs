@@ -82,21 +82,6 @@ namespace ServiceLocator.Controllers
         {
             ViewData["BodyClass"] = "homepage-background";
 
-            bool startTour = TempData["StartTour"] as bool? ?? false;
-
-            if (startTour)
-            {
-                var vm = new CustomerPageViewModel
-                {
-                    Providers = _context.Provider
-                        .Where(p => p.professionName == "Plumber")
-                        .ToList()
-                };
-
-                ViewData["StartTour"] = true;
-                return View("Customerpage", vm);
-            }
-
             return View("Customer");
         }
 
@@ -118,7 +103,6 @@ namespace ServiceLocator.Controllers
                         .ToList()
                 };
 
-                ViewData["StartTour"] = true;
                 return View("Providerpage", vm);
             }
 
@@ -268,28 +252,22 @@ namespace ServiceLocator.Controllers
 
         //Request Service action
         [HttpPost]
-        public IActionResult RequestService(int providerId, string tourMode)
+        public IActionResult RequestService(int providerId)
         {
-            bool isDemo = tourMode == "true";
 
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             if (customerId == null)
                 return Unauthorized();
 
-            // 🔹 Get demo session if it exists
-            string demoSessionId = isDemo ? GetOrCreateDemoSessionId() : null;
 
-            // ✅ STRICT duplicate check (include demo session)
+
             bool alreadyRequested = _context.Notifications.Any(n =>
                 n.InitiatorType == "Customer" &&
                 n.InitiatorId == customerId.Value &&
                 n.TargetType == "Provider" &&
                 n.TargetId == providerId &&
-                n.IsAccepted == false &&
-                (
-                    !n.IsDemo ||
-                    (n.IsDemo && n.DemoSessionId == demoSessionId)
-                )
+                n.IsAccepted == false 
+              
             );
 
             if (alreadyRequested)
@@ -320,30 +298,13 @@ namespace ServiceLocator.Controllers
                 IsRead = false,
                 IsAccepted = false,
                 CreatedAt = DateTime.UtcNow,
-                IsDemo = isDemo,
-                DemoSessionId = demoSessionId
             });
 
             _context.SaveChanges();
 
-            return Ok(new {
-                success = true,
-                message = isDemo ? "Demo request sent successfully." : "Request sent."
-            });
+            return Ok();
         }
 
-
-
-        private string GetOrCreateDemoSessionId()
-        {
-            var id = HttpContext.Session.GetString("DemoSessionId");
-            if (id == null)
-            {
-                id = Guid.NewGuid().ToString();
-                HttpContext.Session.SetString("DemoSessionId", id);
-            }
-            return id;
-        }
 
 
 
@@ -361,19 +322,13 @@ namespace ServiceLocator.Controllers
             Console.WriteLine($"ProviderId: {providerId}, customerId: {customerId}");
             Console.WriteLine("===============================");
 
-            // 🔹 Get demo session if it exists
-            string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
 
-            // 🔹 Check if notification already exists (including demo session)
             var alreadyExists = _context.Notifications.Any(n =>
                 n.InitiatorType == "Provider" &&
                 n.InitiatorId == providerId.Value &&
                 n.TargetType == "Customer" &&
-                n.TargetId == customerId &&
-                (
-                    !n.IsDemo || 
-                    (n.IsDemo && n.DemoSessionId == demoSessionId)
-                )
+                n.TargetId == customerId 
+       
             );
 
             if (alreadyExists)
@@ -388,8 +343,6 @@ namespace ServiceLocator.Controllers
                 TargetType = "Customer",
                 TargetId = customerId,
                 IsRead = false,
-                IsDemo = !string.IsNullOrEmpty(demoSessionId),
-                DemoSessionId = demoSessionId
             };
 
             _context.Notifications.Add(notification);
@@ -404,8 +357,6 @@ namespace ServiceLocator.Controllers
                 int? customerId = HttpContext.Session.GetInt32("CustomerId");
                 int? providerId = HttpContext.Session.GetInt32("ProviderId");
 
-                // 🔹 DEMO SESSION (used for filtering demo notifications)
-                string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
 
                 IQueryable<Notification> query = _context.Notifications;
 
@@ -426,11 +377,7 @@ namespace ServiceLocator.Controllers
                     return View(new List<NotificationViewModel>());
                 }
 
-                // 🔹 FILTER DEMO VS REAL NOTIFICATIONS
-                query = query.Where(n =>
-                    !n.IsDemo ||
-                    (n.IsDemo && n.DemoSessionId == demoSessionId)
-                );
+                
 
                 var notifications = query
                     .OrderByDescending(n => n.CreatedAt)
@@ -544,15 +491,13 @@ namespace ServiceLocator.Controllers
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             int? providerId = HttpContext.Session.GetInt32("ProviderId");
 
-            string demoSessionId = HttpContext.Session.GetString("DemoSessionId");
 
             if (customerId != null)
             {
                 return _context.Notifications.Count(n =>
                     n.TargetType == "Customer" &&
                     n.TargetId == customerId.Value &&
-                    !n.IsRead &&
-                    (!n.IsDemo || n.DemoSessionId == demoSessionId)
+                    !n.IsRead 
                 );
             }
 
@@ -561,8 +506,7 @@ namespace ServiceLocator.Controllers
                 return _context.Notifications.Count(n =>
                     n.TargetType == "Provider" &&
                     n.TargetId == providerId.Value &&
-                    !n.IsRead &&
-                    (!n.IsDemo || n.DemoSessionId == demoSessionId)
+                    !n.IsRead 
                 );
             }
 
@@ -582,7 +526,6 @@ namespace ServiceLocator.Controllers
 
             notification.IsAccepted = true;
 
-            // 🔹 Create back-notification safely, preserving demo flags
             _context.Notifications.Add(new Notification
             {
                 InitiatorType = notification.TargetType,
@@ -590,32 +533,12 @@ namespace ServiceLocator.Controllers
                 TargetType = notification.InitiatorType,
                 TargetId = notification.InitiatorId,
                 IsRead = false,
-                IsDemo = notification.IsDemo,                     // copy demo flag
-                DemoSessionId = notification.DemoSessionId,       // copy demo session
                 CreatedAt = DateTime.Now
             });
 
             _context.SaveChanges();
 
             return RedirectToAction("Notifications");
-        }
-
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult CleanupDemo()
-        {
-            var demoSessionId = HttpContext.Session.GetString("DemoSessionId");
-            if (demoSessionId == null) return Ok();
-
-            var demos = _context.Notifications
-                .Where(n => n.IsDemo && n.DemoSessionId == demoSessionId);
-
-            _context.Notifications.RemoveRange(demos);
-            _context.SaveChanges();
-
-            HttpContext.Session.Remove("DemoSessionId");
-            return Ok();
         }
 
 
@@ -789,11 +712,6 @@ namespace ServiceLocator.Controllers
             return Ok(new { success = true });
         }
 
-        public IActionResult StartTour(bool tour)
-        {
-            TempData["StartTour"] = tour;
-            return RedirectToAction("Customer");
-        }
 
 
 
