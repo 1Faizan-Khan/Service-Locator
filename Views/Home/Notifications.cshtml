@@ -73,6 +73,12 @@
 
     <div class="container mt-4">
         <div class="row justify-content-center gap-2">
+            <button onclick="goBack()" class="btn btn-primary col-auto">Back</button>
+            <script>
+                function goBack() {
+                    window.history.back();
+                }
+            </script>
             <a asp-action="Index" class="btn btn-primary col-auto">Homepage</a>
         </div>
     </div>

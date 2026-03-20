@@ -323,18 +323,26 @@ namespace ServiceLocator.Controllers
             Console.WriteLine("===============================");
 
 
-            var alreadyExists = _context.Notifications.Any(n =>
+            var existingNotification = _context.Notifications
+            .FirstOrDefault(n =>
                 n.InitiatorType == "Provider" &&
                 n.InitiatorId == providerId.Value &&
                 n.TargetType == "Customer" &&
-                n.TargetId == customerId 
-       
+                n.TargetId == customerId
             );
 
-            if (alreadyExists)
+            // 🚫 If already accepted → DO NOTHING
+            if (existingNotification != null && existingNotification.IsAccepted)
+            {
+                return Ok(); // silently ignore, conversation already exists
+            }
+
+            // 🚫 If already pending → DO NOTHING
+            if (existingNotification != null && !existingNotification.IsAccepted)
             {
                 return BadRequest("You already offered your service.");
             }
+
 
             var notification = new Notification
             {
@@ -380,12 +388,36 @@ namespace ServiceLocator.Controllers
                 
 
                 var notifications = query
-                    .OrderByDescending(n => n.CreatedAt)
-                    .ToList();
+                .OrderByDescending(n => n.CreatedAt)
+                .ToList();
 
-                // 🔹 Mark all as read
+                // 🔹 Mark notifications as read
                 notifications.ForEach(n => n.IsRead = true);
+
+                // 🔹 ALSO mark messages as read (THIS IS THE FIX)
+                if (customerId != null)
+                {
+                    var unreadMessages = _context.Messages
+                        .Where(m => m.RecipientType == "Customer" &&
+                                    m.RecipientId == customerId.Value &&
+                                    !m.IsRead)
+                        .ToList();
+
+                    unreadMessages.ForEach(m => m.IsRead = true);
+                }
+                else if (providerId != null)
+                {
+                    var unreadMessages = _context.Messages
+                        .Where(m => m.RecipientType == "Provider" &&
+                                    m.RecipientId == providerId.Value &&
+                                    !m.IsRead)
+                        .ToList();
+
+                    unreadMessages.ForEach(m => m.IsRead = true);
+                }
+
                 _context.SaveChanges();
+
 
                 bool isCustomer = customerId != null;
 
@@ -491,27 +523,48 @@ namespace ServiceLocator.Controllers
             int? customerId = HttpContext.Session.GetInt32("CustomerId");
             int? providerId = HttpContext.Session.GetInt32("ProviderId");
 
+            int count = 0;
 
             if (customerId != null)
             {
-                return _context.Notifications.Count(n =>
+                // 🔹 Unread service notifications
+                int notificationCount = _context.Notifications.Count(n =>
                     n.TargetType == "Customer" &&
                     n.TargetId == customerId.Value &&
-                    !n.IsRead 
+                    !n.IsRead
                 );
-            }
 
-            if (providerId != null)
+                // 🔹 Unread messages
+                int messageCount = _context.Messages.Count(m =>
+                    m.RecipientType == "Customer" &&
+                    m.RecipientId == customerId.Value &&
+                    !m.IsRead
+                );
+
+                count = notificationCount + messageCount;
+            }
+            else if (providerId != null)
             {
-                return _context.Notifications.Count(n =>
+                // 🔹 Unread service notifications
+                int notificationCount = _context.Notifications.Count(n =>
                     n.TargetType == "Provider" &&
                     n.TargetId == providerId.Value &&
-                    !n.IsRead 
+                    !n.IsRead
                 );
+
+                // 🔹 Unread messages
+                int messageCount = _context.Messages.Count(m =>
+                    m.RecipientType == "Provider" &&
+                    m.RecipientId == providerId.Value &&
+                    !m.IsRead
+                );
+
+                count = notificationCount + messageCount;
             }
 
-            return 0;
+            return count;
         }
+
 
 
 
@@ -542,7 +595,7 @@ namespace ServiceLocator.Controllers
         }
 
 
-        [HttpPost]
+        [HttpGet]
         public IActionResult CustomerSearch(
             string service,
             string city,
@@ -603,7 +656,7 @@ namespace ServiceLocator.Controllers
 
 
 
-        [HttpPost]
+        [HttpGet]
         public IActionResult ProviderSearch(
             string service,
             string city,
@@ -695,7 +748,8 @@ namespace ServiceLocator.Controllers
                 RecipientId = recipientId,
                 RecipientType = recipientType,
                 Text = messageText,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false // ✅ IMPORTANT: mark as unread
             };
 
             _context.Messages.Add(msg);
