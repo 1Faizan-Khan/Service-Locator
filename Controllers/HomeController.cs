@@ -254,56 +254,65 @@ namespace ServiceLocator.Controllers
         [HttpPost]
         public IActionResult RequestService(int providerId)
         {
-
-            int? customerId = HttpContext.Session.GetInt32("CustomerId");
-            if (customerId == null)
-                return Unauthorized();
-
-
-
-            bool alreadyRequested = _context.Notifications.Any(n =>
-                n.InitiatorType == "Customer" &&
-                n.InitiatorId == customerId.Value &&
-                n.TargetType == "Provider" &&
-                n.TargetId == providerId &&
-                n.IsAccepted == false 
-              
-            );
-
-            if (alreadyRequested)
-                return BadRequest("You already requested this service.");
-
-            // ✅ Ensure conversation exists
-            var convoExists = _context.Conversations.Any(c =>
-                c.CustomerId == customerId.Value &&
-                c.ProviderId == providerId
-            );
-
-            if (!convoExists)
+            try
             {
-                _context.Conversations.Add(new Conversation
+                int? customerId = HttpContext.Session.GetInt32("CustomerId");
+                if (customerId == null)
+                    return BadRequest("Not logged in.");
+
+                bool alreadyExists =
+                _context.Conversations.Any(c =>
+                    c.CustomerId == customerId.Value &&
+                    c.ProviderId == providerId
+                )
+                ||
+                _context.Notifications.Any(n =>
+                    n.InitiatorType == "Customer" &&
+                    n.InitiatorId == customerId.Value &&
+                    n.TargetType == "Provider" &&
+                    n.TargetId == providerId 
+                );
+
+                if (alreadyExists)
+                    return BadRequest("Service already requested.");
+
+
+                var convoExists = _context.Conversations.Any(c =>
+                    c.CustomerId == customerId.Value &&
+                    c.ProviderId == providerId
+                );
+
+                if (!convoExists)
                 {
-                    CustomerId = customerId.Value,
-                    ProviderId = providerId
+                    _context.Conversations.Add(new Conversation
+                    {
+                        CustomerId = customerId.Value,
+                        ProviderId = providerId
+                    });
+                }
+
+                _context.Notifications.Add(new Notification
+                {
+                    InitiatorType = "Customer",
+                    InitiatorId = customerId.Value,
+                    TargetType = "Provider",
+                    TargetId = providerId,
+                    IsRead = false,
+                    IsAccepted = false,
+                    CreatedAt = DateTime.UtcNow,
                 });
+
+                _context.SaveChanges();
+
+                return Ok("Request sent successfully!");
             }
-
-            // ✅ Create the notification correctly
-            _context.Notifications.Add(new Notification
+            catch (Exception ex)
             {
-                InitiatorType = "Customer",
-                InitiatorId = customerId.Value,
-                TargetType = "Provider",
-                TargetId = providerId,
-                IsRead = false,
-                IsAccepted = false,
-                CreatedAt = DateTime.UtcNow,
-            });
-
-            _context.SaveChanges();
-
-            return Ok();
+                Console.WriteLine("ERROR: " + ex.Message);
+                return BadRequest("SERVER ERROR: " + ex.Message);
+            }
         }
+
 
 
 
@@ -325,17 +334,26 @@ namespace ServiceLocator.Controllers
 
             var existingNotification = _context.Notifications
             .FirstOrDefault(n =>
-                n.InitiatorType == "Provider" &&
+                (n.InitiatorType == "Provider" &&
                 n.InitiatorId == providerId.Value &&
                 n.TargetType == "Customer" &&
-                n.TargetId == customerId
+                n.TargetId == customerId)
+
+                ||
+
+                (n.InitiatorType == "Customer" &&
+                n.InitiatorId == customerId &&
+                n.TargetType == "Provider" &&
+                n.TargetId == providerId.Value)
             );
 
+
             // 🚫 If already accepted → DO NOTHING
-            if (existingNotification != null && existingNotification.IsAccepted)
+            if (existingNotification != null)
             {
-                return Ok(); // silently ignore, conversation already exists
+                return BadRequest("Service already offered or active conversation exists.");
             }
+
 
             // 🚫 If already pending → DO NOTHING
             if (existingNotification != null && !existingNotification.IsAccepted)

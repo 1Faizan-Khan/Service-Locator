@@ -7,14 +7,11 @@
             var city = this.getAttribute("data-city");
             var state = this.getAttribute("data-state");
             var zipcode = this.getAttribute("data-zipcode");
-            var providerId = this.getAttribute("data-provider-id"); // NEW LINE
+            var providerId = this.getAttribute("data-provider-id");
 
             var container = document.getElementById("describe-container");
-
-            // Clear previous content
             container.innerHTML = "";
 
-            // Create a new div for the clicked post
             var newCard = document.createElement("div");
             newCard.classList.add("describe-card");
 
@@ -24,7 +21,9 @@
                         <h3 class="describe-title">${itemname}</h3>
                     </div>
                     <div class="col-auto">
-                        <button id="requestBtn" class="btn btn-primary request-btn" data-provider-id="${providerId}">Request</button>
+                        <button class="btn btn-primary request-btn" data-provider-id="${providerId}">
+                            Request
+                        </button>
                     </div>
                 </div>
                 <p class="describe-profession">${professionname}</p>
@@ -35,8 +34,6 @@
             `;
 
             container.appendChild(newCard);
-
-
         });
     });
 });
@@ -44,9 +41,12 @@
 document.addEventListener("click", function (e) {
     if (e.target.classList.contains("request-btn")) {
 
-        const providerId = e.target.dataset.providerId;
+        const button = e.target;
+        const providerId = button.dataset.providerId;
 
-        // Send providerId and tourMode to server
+        // Prevent spam clicking
+        button.disabled = true;
+
         fetch("/Home/RequestService", {
             method: "POST",
             headers: {
@@ -54,18 +54,21 @@ document.addEventListener("click", function (e) {
             },
             body: `providerId=${providerId}`
         })
-        .then(response => response.json()) // parse JSON from server
-        .then(data => {
-            // Show message from server
-            alert(data.message);
+        .then(async response => {
+            const text = await response.text();
+
+            if (response.ok) {
+                alert(text || "Request sent!");
+            } else {
+                alert(text || "Service already requested or active conversation exists.");
+            }
         })
         .catch(err => {
-            console.error(err);
-            alert("Request failed.");
+            console.error("ERROR:", err);
+            alert("Network error.");
+        })
+        .finally(() => {
+            button.disabled = false;
         });
     }
 });
-
-
-
-

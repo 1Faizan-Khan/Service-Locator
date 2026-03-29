@@ -8,9 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
             var state = this.getAttribute("data-state");
             var zipcode = this.getAttribute("data-zipcode");
             var service = this.getAttribute("data-service");
-            var customerid = this.getAttribute("data-customer-id"); // NEW LINE
-
-            console.log("Clicked output-item, customerId =", customerid);
+            var customerid = this.getAttribute("data-customer-id");
 
             var container = document.getElementById("describe-container");
             container.innerHTML = "";
@@ -24,7 +22,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         <h3 class="describe-title">${name}</h3>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-primary service-btn" data-customer-id="${customerid}">Provide Service</button>
+                        <button class="btn btn-primary service-btn" data-customer-id="${customerid}">
+                            Provide Service
+                        </button>
                     </div>
                 </div>
                 <p><strong>Requested Service:</strong> ${service}</p>
@@ -42,14 +42,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("click", function (e) {
     if (e.target.classList.contains("service-btn")) {
-        const customerid = e.target.dataset.customerId;
+
+        const button = e.target;
+        const customerid = button.dataset.customerId;
 
         if (!customerid) {
             console.error("customerId is missing!");
             return;
         }
-        
-        console.log("Sending customerId to server:", customerid);
+
+        button.disabled = true;
 
         fetch("/Home/ProvideService", {
             method: "POST",
@@ -61,17 +63,22 @@ document.addEventListener("click", function (e) {
             })
         })
         .then(async response => {
-            if (response.ok) {
-                alert("Service offered!");
-            } else {
-                alert(message); // ← THIS is your BadRequest message
-            }
-        })
-        .catch(err => {
-            console.error("NETWORK / JS ERROR:", err);
-            alert("Offer failed.");
-        });
+        const text = await response.text();
 
+        if (response.ok) {
+            alert(text || "Service offered!");
+        } else {
+            alert(text || "Service already offered.");
+        }
+    })
+
+
+        .catch(err => {
+            console.error("NETWORK ERROR:", err);
+            alert("Network error.");
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
     }
 });
-
