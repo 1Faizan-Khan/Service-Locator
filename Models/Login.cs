@@ -7,7 +7,7 @@ public class Login
     public String Email { get; set; }
 
     [Required(ErrorMessage = "This field is required")]
-    public String Password { get; set; }
+    public String Password { get; set; } // testing out
 
 
 
