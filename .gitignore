@@ -1,0 +1,19 @@
+# ASP.NET Core build folders
+bin/
+obj/
+
+# Visual Studio / VS Code
+.vscode/
+*.user
+*.suo
+
+# React (Node.js)
+node_modules/
+dist/
+.vite/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
